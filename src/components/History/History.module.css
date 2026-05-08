@@ -1,0 +1,160 @@
+.page {
+  padding: 0 16px 16px;
+}
+
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.emptyIcon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.emptyText {
+  font-size: 15px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cardDate {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.cardScore {
+  font-size: 22px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.expandIcon {
+  color: var(--text-muted);
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.expandIcon.open {
+  transform: rotate(180deg);
+}
+
+.details {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--border);
+  animation: expand 0.2s ease;
+}
+
+@keyframes expand {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.detailRow:last-child {
+  border-bottom: none;
+}
+
+.detailLabel {
+  color: var(--text-muted);
+}
+
+.detailValue {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.detailValue.accent {
+  color: var(--accent);
+}
+
+.detailValue.gold {
+  color: #f59e0b;
+}
+
+.tasksRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.taskChip {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.taskChip.S { color: #10b981; background: rgba(16, 185, 129, 0.12); }
+.taskChip.M { color: #a855f7; background: rgba(168, 85, 247, 0.12); }
+.taskChip.L { color: #f59e0b; background: rgba(245, 158, 11, 0.12); }
+
+.habitRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.habitName {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.habitInfo {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+  color: #10b981;
+  font-weight: 600;
+}
+
+.formulaBox {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(168, 85, 247, 0.07);
+  border-radius: 10px;
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.formulaBox strong {
+  color: #f59e0b;
+}

@@ -1,0 +1,153 @@
+.section {
+  padding: 0 16px 8px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.addBtn:active {
+  background: rgba(168, 85, 247, 0.1);
+  border-color: var(--accent);
+}
+
+.emptyHint {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  position: relative;
+}
+
+.item + .item {
+  border-top: 1px solid var(--border);
+}
+
+.item.done .label {
+  text-decoration: line-through;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.checkbox {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: transparent;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.checkbox.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.checkmark {
+  color: white;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.label {
+  flex: 1;
+  font-size: 15px;
+  color: var(--text-primary);
+  transition: color 0.2s;
+}
+
+.bonus {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(168, 85, 247, 0.12);
+  border-radius: 6px;
+  padding: 2px 7px;
+  flex-shrink: 0;
+}
+
+.bonus.earned {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+}
+
+.iconBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.iconBtn:active {
+  background: var(--card-hover);
+  color: var(--text-primary);
+}
+
+.iconBtn.danger:active {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}

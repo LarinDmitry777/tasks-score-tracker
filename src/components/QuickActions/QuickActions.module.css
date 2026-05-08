@@ -1,0 +1,124 @@
+.section {
+  padding: 0 16px 8px;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.taskBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 14px 8px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  min-height: 80px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.taskBtn:active {
+  transform: scale(0.94);
+}
+
+.taskBtn.flash {
+  animation: flash 0.35s ease;
+}
+
+@keyframes flash {
+  0% { background: var(--card); }
+  40% { background: rgba(168, 85, 247, 0.25); box-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
+  100% { background: var(--card); }
+}
+
+.taskSize {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.taskSize.sizeS { color: #10b981; }
+.taskSize.sizeM { color: #a855f7; }
+.taskSize.sizeL { color: #f59e0b; }
+
+.taskPts {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.taskCount {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.undoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.taskLog {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.logDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.logDot.S { background: #10b981; }
+.logDot.M { background: #a855f7; }
+.logDot.L { background: #f59e0b; }
+
+.undoBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+}
+
+.undoBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.undoBtn:not(:disabled):active {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}

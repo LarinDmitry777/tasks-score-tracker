@@ -1,0 +1,202 @@
+.section {
+  padding: 0 16px 8px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.addBtn:active {
+  background: rgba(168, 85, 247, 0.1);
+  border-color: var(--accent);
+}
+
+.emptyHint {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  transition: border-color 0.2s;
+}
+
+.card.done {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.streakBadge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 44px;
+  padding: 8px 10px;
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  flex-shrink: 0;
+}
+
+.streakBadge.active {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.streakFire {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.streakNum {
+  font-size: 13px;
+  font-weight: 800;
+  color: #f59e0b;
+  line-height: 1;
+}
+
+.streakLabel {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cardInfo {
+  flex: 1;
+}
+
+.cardLabel {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.bonusBadge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.12);
+  border-radius: 6px;
+  padding: 2px 7px;
+}
+
+.bonusBadge.earned {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.streakHint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.iconBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.iconBtn:active {
+  background: var(--card-hover);
+}
+
+.iconBtn.danger:active {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.doneBtn {
+  margin-top: 12px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.doneBtn.active {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.doneBtn:active {
+  transform: scale(0.97);
+}

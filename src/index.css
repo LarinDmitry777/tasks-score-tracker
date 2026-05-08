@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Colors */
+  --bg: #0d0d14;
+  --card: #13131f;
+  --card-hover: #1a1a2e;
+  --border: rgba(255, 255, 255, 0.08);
+  --accent: #a855f7;
+  --accent-dim: rgba(168, 85, 247, 0.15);
+
+  --text-primary: #f1f0f5;
+  --text-secondary: #c4b8d8;
+  --text-muted: #6b6580;
+
+  /* Typography */
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  color-scheme: dark;
+  color: var(--text-primary);
+  background: var(--bg);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  /* Center on desktop */
+  display: flex;
+  justify-content: center;
+}
+
+#root {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100svh;
+  position: relative;
+}
+
+h1, h2, h3 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+p {
+  margin: 0;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Divider between sections */
+.section-gap {
+  height: 16px;
+}
