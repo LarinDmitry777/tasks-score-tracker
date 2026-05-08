@@ -8,6 +8,7 @@ import type { TabId } from './types';
 import './App.css';
 
 function App() {
+  
   const [activeTab, setActiveTab] = useState<TabId>('today');
   useDailyReset();
 
