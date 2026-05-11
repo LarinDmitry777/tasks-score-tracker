@@ -38,6 +38,7 @@ export function RoutineSettingsPage({ onBack }: Props) {
   const addRoutine = useStore((st) => st.addRoutine);
   const editRoutine = useStore((st) => st.editRoutine);
   const deleteRoutine = useStore((st) => st.deleteRoutine);
+  const toggleRoutine = useStore((st) => st.toggleRoutine);
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<RoutineItem | null>(null);
@@ -111,9 +112,23 @@ export function RoutineSettingsPage({ onBack }: Props) {
                   <span className={`${s.badge} ${s.dueBadge}`}>
                     след.: {formatDueLabel(item.dueDate, today)}
                   </span>
+                  {item.done && (
+                    <span className={`${s.badge} ${s.doneBadge}`}>✓ сегодня</span>
+                  )}
                 </div>
               </div>
               <div className={s.itemActions}>
+                {item.done && (
+                  <button
+                    className={s.iconBtn}
+                    onClick={() => toggleRoutine(item.id)}
+                    type="button"
+                    aria-label="Вернуть на главный экран"
+                    title="Вернуть на главный экран"
+                  >
+                    ↩
+                  </button>
+                )}
                 <button
                   className={s.iconBtn}
                   onClick={() => openEdit(item)}

@@ -67,6 +67,20 @@
   border-top: 1px solid var(--border);
 }
 
+.item.periodic {
+  background: rgba(99, 102, 241, 0.07);
+}
+
+.item.periodic::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: rgba(99, 102, 241, 0.55);
+}
+
 .item.done .label {
   text-decoration: line-through;
   color: var(--text-muted);

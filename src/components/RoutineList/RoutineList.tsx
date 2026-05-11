@@ -15,10 +15,17 @@ export function RoutineList() {
   const today = useStore((st) => st.today);
   const toggleRoutine = useStore((st) => st.toggleRoutine);
 
-  const visible = useMemo(
-    () => routine.filter((r) => isVisibleToday(r, today)),
+  const doneCountTotal = useMemo(
+    () => routine.filter((r) => isVisibleToday(r, today) && r.done).length,
     [routine, today],
   );
+
+  const visible = useMemo(() => {
+    const pending = routine.filter((r) => isVisibleToday(r, today) && !r.done);
+    const periodic = pending.filter((r) => r.intervalDays > 1);
+    const daily = pending.filter((r) => r.intervalDays <= 1);
+    return [...periodic, ...daily];
+  }, [routine, today]);
 
   const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map());
   const prevPositions = useRef<Map<string, number>>(new Map());
@@ -49,8 +56,6 @@ export function RoutineList() {
     else itemRefs.current.delete(id);
   };
 
-  const doneCount = visible.filter((r) => r.done).length;
-
   return (
     <section className={s.section}>
       <div className={s.sectionHeader}>
@@ -61,29 +66,22 @@ export function RoutineList() {
         <p className={s.emptyHint}>На сегодня рутины нет</p>
       ) : (
         <ul className={s.list}>
-          {visible.map((item, i) => {
-            const bonus = item.done
-              ? (i < ROUTINE_BONUSES.length ? ROUTINE_BONUSES[i] : ROUTINE_BONUSES[ROUTINE_BONUSES.length - 1])
-              : getNextBonus(doneCount);
-
+          {visible.map((item) => {
+            const bonus = getNextBonus(doneCountTotal);
             return (
               <li
                 key={item.id}
                 ref={setItemRef(item.id)}
-                className={`${s.item} ${item.done ? s.done : ''}`}
+                className={`${s.item} ${item.intervalDays > 1 ? s.periodic : ''}`}
               >
                 <button
-                  className={`${s.checkbox} ${item.done ? s.checked : ''}`}
+                  className={s.checkbox}
                   onClick={() => toggleRoutine(item.id)}
                   type="button"
-                  aria-label={item.done ? 'Снять отметку' : 'Отметить выполненным'}
-                >
-                  {item.done && <span className={s.checkmark}>✓</span>}
-                </button>
+                  aria-label="Отметить выполненным"
+                />
                 <span className={s.label}>{item.label}</span>
-                <span className={`${s.bonus} ${item.done ? s.earned : ''}`}>
-                  {item.done ? '✓' : '+'}{bonus.toFixed(2)}
-                </span>
+                <span className={s.bonus}>+{bonus.toFixed(2)}</span>
               </li>
             );
           })}

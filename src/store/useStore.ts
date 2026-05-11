@@ -86,7 +86,7 @@ export const useStore = create<StoreState>()(
           const others = s.routine.filter((r) => r.id !== id);
           const doneItems = others.filter((r) => r.done);
           const undoneItems = others.filter((r) => !r.done);
-          return { routine: [...doneItems, updated, ...undoneItems] };
+          return { routine: [...undoneItems, updated, ...doneItems] };
         });
       },
 
