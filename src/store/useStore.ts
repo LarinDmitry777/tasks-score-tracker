@@ -28,6 +28,8 @@ interface StoreState {
     patch: { label?: string; intervalDays?: number; mode?: RoutineScheduleMode },
   ) => void;
   deleteRoutine: (id: string) => void;
+  skipRoutineToday: (id: string) => void;
+  unskipRoutineToday: (id: string) => void;
 
   // Habit actions
   toggleHabit: (id: string) => void;
@@ -113,6 +115,23 @@ export const useStore = create<StoreState>()(
 
       deleteRoutine: (id) => {
         set((s) => ({ routine: s.routine.filter((r) => r.id !== id) }));
+      },
+
+      skipRoutineToday: (id) => {
+        const today = getTodayDate();
+        set((s) => ({
+          routine: s.routine.map((r) =>
+            r.id === id ? { ...r, skippedOnDate: today } : r,
+          ),
+        }));
+      },
+
+      unskipRoutineToday: (id) => {
+        set((s) => ({
+          routine: s.routine.map((r) =>
+            r.id === id ? { ...r, skippedOnDate: undefined } : r,
+          ),
+        }));
       },
 
       toggleHabit: (id) => {
@@ -240,7 +259,12 @@ export const useStore = create<StoreState>()(
         set({
           today: currentDate,
           tasks: [],
-          routine: routine.map((r) => ({ ...r, done: false, prevDueDate: undefined })),
+          routine: routine.map((r) => ({
+            ...r,
+            done: false,
+            prevDueDate: undefined,
+            skippedOnDate: undefined,
+          })),
           habits: resetHabits,
           history: [record, ...history],
         });

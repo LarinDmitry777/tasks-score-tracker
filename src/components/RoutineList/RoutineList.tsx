@@ -16,12 +16,17 @@ export function RoutineList() {
   const toggleRoutine = useStore((st) => st.toggleRoutine);
 
   const doneCountTotal = useMemo(
-    () => routine.filter((r) => isVisibleToday(r, today) && r.done).length,
+    () =>
+      routine.filter(
+        (r) => isVisibleToday(r, today) && r.done && r.skippedOnDate !== today,
+      ).length,
     [routine, today],
   );
 
   const visible = useMemo(() => {
-    const pending = routine.filter((r) => isVisibleToday(r, today) && !r.done);
+    const pending = routine.filter(
+      (r) => isVisibleToday(r, today) && !r.done && r.skippedOnDate !== today,
+    );
     const periodic = pending.filter((r) => r.intervalDays > 1);
     const daily = pending.filter((r) => r.intervalDays <= 1);
     return [...periodic, ...daily];

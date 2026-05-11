@@ -39,6 +39,8 @@ export function RoutineSettingsPage({ onBack }: Props) {
   const editRoutine = useStore((st) => st.editRoutine);
   const deleteRoutine = useStore((st) => st.deleteRoutine);
   const toggleRoutine = useStore((st) => st.toggleRoutine);
+  const skipRoutineToday = useStore((st) => st.skipRoutineToday);
+  const unskipRoutineToday = useStore((st) => st.unskipRoutineToday);
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<RoutineItem | null>(null);
@@ -102,7 +104,11 @@ export function RoutineSettingsPage({ onBack }: Props) {
         <p className={s.emptyHint}>Список пуст. Добавьте первое рутинное дело.</p>
       ) : (
         <ul className={s.list}>
-          {sorted.map((item) => (
+          {sorted.map((item) => {
+            const skippedToday = item.skippedOnDate === today;
+            const dueToday = item.dueDate <= today;
+            const onMain = dueToday && !item.done && !skippedToday;
+            return (
             <li key={item.id} className={s.item}>
               <div className={s.itemMain}>
                 <p className={s.itemLabel}>{item.label}</p>
@@ -115,13 +121,36 @@ export function RoutineSettingsPage({ onBack }: Props) {
                   {item.done && (
                     <span className={`${s.badge} ${s.doneBadge}`}>✓ сегодня</span>
                   )}
+                  {skippedToday && (
+                    <span className={`${s.badge} ${s.skipBadge}`}>⊘ не сегодня</span>
+                  )}
                 </div>
+                {onMain && (
+                  <button
+                    className={s.skipBtn}
+                    onClick={() => skipRoutineToday(item.id)}
+                    type="button"
+                  >
+                    ⊘ Не сегодня
+                  </button>
+                )}
               </div>
               <div className={s.itemActions}>
                 {item.done && (
                   <button
                     className={s.iconBtn}
                     onClick={() => toggleRoutine(item.id)}
+                    type="button"
+                    aria-label="Вернуть на главный экран"
+                    title="Вернуть на главный экран"
+                  >
+                    ↩
+                  </button>
+                )}
+                {skippedToday && (
+                  <button
+                    className={s.iconBtn}
+                    onClick={() => unskipRoutineToday(item.id)}
                     type="button"
                     aria-label="Вернуть на главный экран"
                     title="Вернуть на главный экран"
@@ -168,7 +197,8 @@ export function RoutineSettingsPage({ onBack }: Props) {
                 </div>
               )}
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
 

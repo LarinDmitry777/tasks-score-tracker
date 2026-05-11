@@ -25,6 +25,7 @@ export interface RoutineItem {
   startDate: string; // YYYY-MM-DD
   dueDate: string; // YYYY-MM-DD — next scheduled appearance
   prevDueDate?: string; // for same-day undo of toggle
+  skippedOnDate?: string; // YYYY-MM-DD — hidden from main for this day only
 }
 
 export interface Habit {
