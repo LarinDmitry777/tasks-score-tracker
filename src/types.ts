@@ -14,10 +14,17 @@ export interface TaskEntry {
   timestamp: number;
 }
 
+export type RoutineScheduleMode = 'sinceLastDone' | 'fixedGrid';
+
 export interface RoutineItem {
   id: string;
   label: string;
   done: boolean;
+  intervalDays: number;
+  mode: RoutineScheduleMode;
+  startDate: string; // YYYY-MM-DD
+  dueDate: string; // YYYY-MM-DD — next scheduled appearance
+  prevDueDate?: string; // for same-day undo of toggle
 }
 
 export interface Habit {
@@ -26,6 +33,9 @@ export interface Habit {
   streak: number;
   lastDoneDate: string | null; // ISO date "YYYY-MM-DD" or null
   doneToday: boolean;
+  skipsAllowed: number; // allowed misses per calendar week (Mon-Sun)
+  skipsUsed: number; // misses already used in skipsWeekStart's week
+  skipsWeekStart: string; // YYYY-MM-DD — Monday of the tracked week
 }
 
 export interface HistoryHabit {

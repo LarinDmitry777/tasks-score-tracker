@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
 import { useStore } from '../store/useStore';
+import { HabitSettingsPage } from './HabitSettingsPage';
+import { RoutineSettingsPage } from './RoutineSettingsPage';
 import s from './SettingsPage.module.css';
 
 type ToastState = { type: 'success' | 'error'; message: string } | null;
@@ -15,6 +17,14 @@ export function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [toast, setToast] = useState<ToastState>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [view, setView] = useState<'main' | 'routine' | 'habits'>('main');
+
+  if (view === 'routine') {
+    return <RoutineSettingsPage onBack={() => setView('main')} />;
+  }
+  if (view === 'habits') {
+    return <HabitSettingsPage onBack={() => setView('main')} />;
+  }
 
   const showToast = (type: 'success' | 'error', message: string) => {
     setToast({ type, message });
@@ -57,6 +67,40 @@ export function SettingsPage() {
     <div className={s.page}>
       <h1 className={s.title}>Настройки</h1>
       <p className={s.subtitle}>Управление данными</p>
+
+      {/* Routine management */}
+      <section className={s.section}>
+        <p className={s.sectionTitle}>Рутина</p>
+        <div className={s.card}>
+          <p className={s.cardDesc}>
+            Управление списком рутинных дел и настройка частоты их появления.
+          </p>
+          <button
+            className={`${s.btn} ${s.btnExport}`}
+            onClick={() => setView('routine')}
+            type="button"
+          >
+            🧩 Управление рутиной
+          </button>
+        </div>
+      </section>
+
+      {/* Habit management */}
+      <section className={s.section}>
+        <p className={s.sectionTitle}>Привычки</p>
+        <div className={s.card}>
+          <p className={s.cardDesc}>
+            Управление списком привычек и количеством допустимых пропусков в неделю.
+          </p>
+          <button
+            className={`${s.btn} ${s.btnExport}`}
+            onClick={() => setView('habits')}
+            type="button"
+          >
+            🔥 Управление привычками
+          </button>
+        </div>
+      </section>
 
       {/* Export / Import */}
       <section className={s.section}>

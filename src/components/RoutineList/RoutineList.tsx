@@ -1,7 +1,7 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useStore } from '../../store/useStore';
 import { ROUTINE_BONUSES } from '../../types';
-import { Modal } from '../Modal/Modal';
+import { isVisibleToday } from '../../utils/routine';
 import s from './RoutineList.module.css';
 
 function getNextBonus(doneCount: number): number {
@@ -12,13 +12,13 @@ function getNextBonus(doneCount: number): number {
 
 export function RoutineList() {
   const routine = useStore((st) => st.routine);
+  const today = useStore((st) => st.today);
   const toggleRoutine = useStore((st) => st.toggleRoutine);
-  const addRoutine = useStore((st) => st.addRoutine);
-  const editRoutine = useStore((st) => st.editRoutine);
-  const deleteRoutine = useStore((st) => st.deleteRoutine);
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<{ id: string; label: string } | null>(null);
+  const visible = useMemo(
+    () => routine.filter((r) => isVisibleToday(r, today)),
+    [routine, today],
+  );
 
   const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map());
   const prevPositions = useRef<Map<string, number>>(new Map());
@@ -39,7 +39,6 @@ export function RoutineList() {
       }
       prevPositions.current.set(id, currTop);
     });
-    // Drop entries for removed items so the map doesn't grow forever.
     for (const id of prevPositions.current.keys()) {
       if (!itemRefs.current.has(id)) prevPositions.current.delete(id);
     }
@@ -50,47 +49,19 @@ export function RoutineList() {
     else itemRefs.current.delete(id);
   };
 
-  const doneCount = routine.filter((r) => r.done).length;
-
-  const handleSave = (label: string) => {
-    if (editTarget) {
-      editRoutine(editTarget.id, label);
-    } else {
-      addRoutine(label);
-    }
-    setModalOpen(false);
-    setEditTarget(null);
-  };
-
-  const handleEdit = (id: string, label: string) => {
-    setEditTarget({ id, label });
-    setModalOpen(true);
-  };
-
-  const handleClose = () => {
-    setModalOpen(false);
-    setEditTarget(null);
-  };
+  const doneCount = visible.filter((r) => r.done).length;
 
   return (
     <section className={s.section}>
       <div className={s.sectionHeader}>
         <p className={s.sectionTitle}>Рутина</p>
-        <button
-          id="add-routine-btn"
-          className={s.addBtn}
-          onClick={() => setModalOpen(true)}
-          type="button"
-        >
-          + Добавить
-        </button>
       </div>
 
-      {routine.length === 0 ? (
-        <p className={s.emptyHint}>Добавьте пункты рутины</p>
+      {visible.length === 0 ? (
+        <p className={s.emptyHint}>На сегодня рутины нет</p>
       ) : (
         <ul className={s.list}>
-          {routine.map((item, i) => {
+          {visible.map((item, i) => {
             const bonus = item.done
               ? (i < ROUTINE_BONUSES.length ? ROUTINE_BONUSES[i] : ROUTINE_BONUSES[ROUTINE_BONUSES.length - 1])
               : getNextBonus(doneCount);
@@ -113,38 +84,11 @@ export function RoutineList() {
                 <span className={`${s.bonus} ${item.done ? s.earned : ''}`}>
                   {item.done ? '✓' : '+'}{bonus.toFixed(2)}
                 </span>
-                <div className={s.actions}>
-                  <button
-                    className={s.iconBtn}
-                    onClick={() => handleEdit(item.id, item.label)}
-                    type="button"
-                    aria-label="Редактировать"
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    className={`${s.iconBtn} ${s.danger}`}
-                    onClick={() => deleteRoutine(item.id)}
-                    type="button"
-                    aria-label="Удалить"
-                  >
-                    🗑
-                  </button>
-                </div>
               </li>
             );
           })}
         </ul>
       )}
-
-      <Modal
-        open={modalOpen}
-        title={editTarget ? 'Редактировать рутину' : 'Новый пункт рутины'}
-        placeholder="Например: Зарядка"
-        initialValue={editTarget?.label}
-        onSave={handleSave}
-        onClose={handleClose}
-      />
     </section>
   );
 }
