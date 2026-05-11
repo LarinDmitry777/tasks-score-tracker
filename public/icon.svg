@@ -23,8 +23,8 @@
   </defs>
 
   <!-- Background -->
-  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
-  <rect width="512" height="512" rx="96" fill="url(#glow-bg)"/>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <rect width="512" height="512" fill="url(#glow-bg)"/>
 
   <!-- Lightning bolt -->
   <path d="M295,55 L185,270 L265,270 L220,457 L368,225 L280,225 L355,55 Z"
