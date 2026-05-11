@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { ROUTINE_BONUSES } from '../../types';
 import { Modal } from '../Modal/Modal';
@@ -19,6 +19,36 @@ export function RoutineList() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<{ id: string; label: string } | null>(null);
+
+  const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map());
+  const prevPositions = useRef<Map<string, number>>(new Map());
+
+  useLayoutEffect(() => {
+    itemRefs.current.forEach((el, id) => {
+      const currTop = el.getBoundingClientRect().top;
+      const prevTop = prevPositions.current.get(id);
+      if (prevTop !== undefined && prevTop !== currTop) {
+        const dy = prevTop - currTop;
+        el.animate(
+          [
+            { transform: `translateY(${dy}px)` },
+            { transform: 'translateY(0)' },
+          ],
+          { duration: 220, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
+        );
+      }
+      prevPositions.current.set(id, currTop);
+    });
+    // Drop entries for removed items so the map doesn't grow forever.
+    for (const id of prevPositions.current.keys()) {
+      if (!itemRefs.current.has(id)) prevPositions.current.delete(id);
+    }
+  });
+
+  const setItemRef = (id: string) => (el: HTMLLIElement | null) => {
+    if (el) itemRefs.current.set(id, el);
+    else itemRefs.current.delete(id);
+  };
 
   const doneCount = routine.filter((r) => r.done).length;
 
@@ -66,7 +96,11 @@ export function RoutineList() {
               : getNextBonus(doneCount);
 
             return (
-              <li key={item.id} className={`${s.item} ${item.done ? s.done : ''}`}>
+              <li
+                key={item.id}
+                ref={setItemRef(item.id)}
+                className={`${s.item} ${item.done ? s.done : ''}`}
+              >
                 <button
                   className={`${s.checkbox} ${item.done ? s.checked : ''}`}
                   onClick={() => toggleRoutine(item.id)}

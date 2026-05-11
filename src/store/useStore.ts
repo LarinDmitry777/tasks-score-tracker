@@ -57,9 +57,17 @@ export const useStore = create<StoreState>()(
       },
 
       toggleRoutine: (id) => {
-        set((s) => ({
-          routine: s.routine.map((r) => (r.id === id ? { ...r, done: !r.done } : r)),
-        }));
+        set((s) => {
+          const target = s.routine.find((r) => r.id === id);
+          if (!target) return s;
+          const updated = { ...target, done: !target.done };
+          const others = s.routine.filter((r) => r.id !== id);
+          const doneItems = others.filter((r) => r.done);
+          const undoneItems = others.filter((r) => !r.done);
+          // Done items stay at the top in completion order; the toggled item
+          // sits at the boundary so its index matches its bonus tier.
+          return { routine: [...doneItems, updated, ...undoneItems] };
+        });
       },
 
       addRoutine: (label) => {
