@@ -1,14 +1,21 @@
 import { ROUTINE_BONUSES, TASK_POINTS } from '../types';
 import type { Habit, RoutineItem, TaskEntry } from '../types';
 
+function formatLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 export function getTodayDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return formatLocalDate(new Date());
 }
 
 export function getYesterdayDate(): string {
   const d = new Date();
   d.setDate(d.getDate() - 1);
-  return d.toISOString().slice(0, 10);
+  return formatLocalDate(d);
 }
 
 export function calcBasePoints(tasks: TaskEntry[]): number {

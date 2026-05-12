@@ -37,8 +37,8 @@ interface StoreState {
   editHabit: (id: string, patch: { label?: string; skipsAllowed?: number }) => void;
   deleteHabit: (id: string) => void;
 
-  // Internal: daily reset
-  checkDailyReset: () => void;
+  // Manual day rollover
+  endDay: () => void;
 
   // Data transfer
   exportState: () => void;
@@ -183,10 +183,10 @@ export const useStore = create<StoreState>()(
         set((s) => ({ habits: s.habits.filter((h) => h.id !== id) }));
       },
 
-      checkDailyReset: () => {
+      endDay: () => {
         const { today, tasks, routine, habits, history } = get();
         const currentDate = getTodayDate();
-        if (today === currentDate) return;
+        if (today >= currentDate) return;
 
         // Save yesterday's record
         const { basePoints, routineMultiplier, habitMultiplier, totalMultiplier, totalScore } =

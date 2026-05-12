@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { TabBar } from './components/TabBar/TabBar';
-import { useDailyReset } from './hooks/useDailyReset';
 import { HistoryPage } from './pages/HistoryPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { Today } from './pages/Today';
@@ -8,9 +7,8 @@ import type { TabId } from './types';
 import './App.css';
 
 function App() {
-  
+
   const [activeTab, setActiveTab] = useState<TabId>('today');
-  useDailyReset();
 
   return (
     <div className="app-shell">
