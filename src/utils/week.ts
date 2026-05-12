@@ -1,9 +1,16 @@
+function formatLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 export function mondayOf(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
   const day = d.getDay(); // 0=Sun..6=Sat
   const offset = day === 0 ? 6 : day - 1;
   d.setDate(d.getDate() - offset);
-  return d.toISOString().slice(0, 10);
+  return formatLocalDate(d);
 }
 
 export function daysBetween(from: string, to: string): number {
@@ -15,5 +22,5 @@ export function daysBetween(from: string, to: string): number {
 export function addDays(date: string, days: number): string {
   const d = new Date(date + 'T00:00:00');
   d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  return formatLocalDate(d);
 }
