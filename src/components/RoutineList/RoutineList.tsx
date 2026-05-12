@@ -34,6 +34,35 @@ export function RoutineList() {
 
   const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map());
   const prevPositions = useRef<Map<string, number>>(new Map());
+  const exitingIds = useRef<Set<string>>(new Set());
+
+  const handleComplete = (id: string) => {
+    if (exitingIds.current.has(id)) return;
+    const el = itemRefs.current.get(id);
+    if (!el) {
+      toggleRoutine(id);
+      return;
+    }
+    exitingIds.current.add(id);
+    const height = el.offsetHeight;
+    const anim = el.animate(
+      [
+        { opacity: 1, height: `${height}px`, paddingTop: '14px', paddingBottom: '14px' },
+        { opacity: 0, height: '0px', paddingTop: '0px', paddingBottom: '0px' },
+      ],
+      { duration: 260, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' },
+    );
+    anim.onfinish = () => {
+      exitingIds.current.delete(id);
+      prevPositions.current.delete(id);
+      itemRefs.current.forEach((siblingEl, siblingId) => {
+        if (siblingId !== id) {
+          prevPositions.current.set(siblingId, siblingEl.getBoundingClientRect().top);
+        }
+      });
+      toggleRoutine(id);
+    };
+  };
 
   useLayoutEffect(() => {
     itemRefs.current.forEach((el, id) => {
@@ -81,7 +110,7 @@ export function RoutineList() {
               >
                 <button
                   className={s.checkbox}
-                  onClick={() => toggleRoutine(item.id)}
+                  onClick={() => handleComplete(item.id)}
                   type="button"
                   aria-label="Отметить выполненным"
                 />
