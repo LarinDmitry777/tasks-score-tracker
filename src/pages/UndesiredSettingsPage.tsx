@@ -23,7 +23,10 @@ export function UndesiredSettingsPage({ onBack }: Props) {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const sorted = useMemo(
-    () => [...undesired].sort((a, b) => a.label.localeCompare(b.label, 'ru')),
+    () =>
+      undesired
+        .filter((u) => !u.archivedAt)
+        .sort((a, b) => a.label.localeCompare(b.label, 'ru')),
     [undesired],
   );
 

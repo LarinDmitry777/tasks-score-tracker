@@ -30,7 +30,10 @@ export function HabitSettingsPage({ onBack }: Props) {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const sorted = useMemo(
-    () => [...habits].sort((a, b) => a.label.localeCompare(b.label, 'ru')),
+    () =>
+      habits
+        .filter((h) => !h.archivedAt)
+        .sort((a, b) => a.label.localeCompare(b.label, 'ru')),
     [habits],
   );
 

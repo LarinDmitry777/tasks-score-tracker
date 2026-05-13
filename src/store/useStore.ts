@@ -128,7 +128,14 @@ export const useStore = create<StoreState>()(
       },
 
       deleteRoutine: (id) => {
-        set((s) => ({ routine: s.routine.filter((r) => r.id !== id) }));
+        const today = getTodayDate();
+        set((s) => ({
+          routine: s.routine.map((r) =>
+            r.id === id
+              ? { ...r, archivedAt: today, done: false, skippedOnDate: undefined }
+              : r,
+          ),
+        }));
       },
 
       skipRoutineToday: (id) => {
@@ -150,12 +157,16 @@ export const useStore = create<StoreState>()(
 
       moveRoutine: (id, direction) => {
         set((s) => {
-          const idx = s.routine.findIndex((r) => r.id === id);
-          if (idx === -1) return s;
-          const target = direction === 'up' ? idx - 1 : idx + 1;
-          if (target < 0 || target >= s.routine.length) return s;
+          const active = s.routine.filter((r) => !r.archivedAt);
+          const localIdx = active.findIndex((r) => r.id === id);
+          if (localIdx === -1) return s;
+          const targetLocal = direction === 'up' ? localIdx - 1 : localIdx + 1;
+          if (targetLocal < 0 || targetLocal >= active.length) return s;
+          const neighborId = active[targetLocal].id;
           const next = s.routine.slice();
-          [next[idx], next[target]] = [next[target], next[idx]];
+          const i1 = next.findIndex((r) => r.id === id);
+          const i2 = next.findIndex((r) => r.id === neighborId);
+          [next[i1], next[i2]] = [next[i2], next[i1]];
           return { routine: next };
         });
       },
@@ -187,6 +198,7 @@ export const useStore = create<StoreState>()(
           skipsAllowed: Math.max(0, Math.floor(skipsAllowed)),
           skipsUsed: 0,
           skipsWeekStart: mondayOf(today),
+          createdAt: today,
         };
         set((s) => ({ habits: [...s.habits, habit] }));
       },
@@ -206,7 +218,14 @@ export const useStore = create<StoreState>()(
       },
 
       deleteHabit: (id) => {
-        set((s) => ({ habits: s.habits.filter((h) => h.id !== id) }));
+        const today = getTodayDate();
+        set((s) => ({
+          habits: s.habits.map((h) =>
+            h.id === id
+              ? { ...h, archivedAt: today, doneToday: false }
+              : h,
+          ),
+        }));
       },
 
       toggleUndesired: (id) => {
@@ -234,6 +253,7 @@ export const useStore = create<StoreState>()(
       },
 
       addUndesired: (label) => {
+        const today = getTodayDate();
         const item: UndesiredTask = {
           id: uid(),
           label,
@@ -241,6 +261,7 @@ export const useStore = create<StoreState>()(
           cleanStreak: 0,
           lastFailDate: null,
           markedToday: false,
+          createdAt: today,
         };
         set((s) => ({ undesired: [...s.undesired, item] }));
       },
@@ -257,7 +278,14 @@ export const useStore = create<StoreState>()(
       },
 
       deleteUndesired: (id) => {
-        set((s) => ({ undesired: s.undesired.filter((u) => u.id !== id) }));
+        const today = getTodayDate();
+        set((s) => ({
+          undesired: s.undesired.map((u) =>
+            u.id === id
+              ? { ...u, archivedAt: today, markedToday: false }
+              : u,
+          ),
+        }));
       },
 
       endDay: () => {
@@ -265,7 +293,10 @@ export const useStore = create<StoreState>()(
         const currentDate = getTodayDate();
         if (today >= currentDate) return;
 
-        // Save yesterday's record
+        const activeRoutine = routine.filter((r) => !r.archivedAt);
+        const activeHabits = habits.filter((h) => !h.archivedAt);
+        const activeUndesired = undesired.filter((u) => !u.archivedAt);
+
         const {
           basePoints,
           routineMultiplier,
@@ -273,19 +304,28 @@ export const useStore = create<StoreState>()(
           undesiredPenalty,
           totalMultiplier,
           totalScore,
-        } = calcTotalScore(tasks, routine, habits, undesired);
+        } = calcTotalScore(tasks, activeRoutine, activeHabits, activeUndesired);
 
         const record: DayRecord = {
           date: today,
           tasks,
-          routineDoneCount: routine.filter((r) => r.done).length,
-          habits: habits.map((h) => ({
+          routineDoneCount: activeRoutine.filter((r) => r.done).length,
+          routine: activeRoutine.map((r) => ({
+            id: r.id,
+            label: r.label,
+            done: r.done,
+            skipped: r.skippedOnDate === today,
+            intervalDays: r.intervalDays,
+            mode: r.mode,
+          })),
+          habits: activeHabits.map((h) => ({
             id: h.id,
             label: h.label,
             streak: h.streak,
             bonus: h.doneToday ? calcHabitBonus(h.streak) : 0,
+            skipsAllowed: h.skipsAllowed,
           })),
-          undesired: undesired.map((u) => ({
+          undesired: activeUndesired.map((u) => ({
             id: u.id,
             label: u.label,
             failStreak: u.failStreak,
@@ -302,6 +342,7 @@ export const useStore = create<StoreState>()(
         const currentWeekStart = mondayOf(currentDate);
 
         const resetHabits = habits.map((h) => {
+          if (h.archivedAt) return h;
           let streak = h.streak;
           let skipsUsed = h.skipsUsed;
           let skipsWeekStart = h.skipsWeekStart || currentWeekStart;
@@ -348,6 +389,7 @@ export const useStore = create<StoreState>()(
 
         const dayDiff = Math.max(1, daysBetween(today, currentDate));
         const resetUndesired: UndesiredTask[] = undesired.map((u) => {
+          if (u.archivedAt) return u;
           let failStreak = u.failStreak;
           let cleanStreak = u.cleanStreak;
           if (u.markedToday) {
@@ -373,12 +415,11 @@ export const useStore = create<StoreState>()(
         set({
           today: currentDate,
           tasks: [],
-          routine: routine.map((r) => ({
-            ...r,
-            done: false,
-            prevDueDate: undefined,
-            skippedOnDate: undefined,
-          })),
+          routine: routine.map((r) =>
+            r.archivedAt
+              ? r
+              : { ...r, done: false, prevDueDate: undefined, skippedOnDate: undefined },
+          ),
           habits: resetHabits,
           undesired: resetUndesired,
           history: [record, ...history],
@@ -389,7 +430,7 @@ export const useStore = create<StoreState>()(
         const { today, tasks, routine, habits, undesired, history } = get();
         const payload = JSON.stringify(
           {
-            version: 4,
+            version: 5,
             exportedAt: new Date().toISOString(),
             today,
             tasks,
@@ -414,7 +455,7 @@ export const useStore = create<StoreState>()(
         try {
           const data = JSON.parse(json);
           if (!data || typeof data !== 'object') throw new Error('Неверный формат файла');
-          if (data.version !== 1 && data.version !== 2 && data.version !== 3 && data.version !== 4) {
+          if (![1, 2, 3, 4, 5].includes(data.version)) {
             throw new Error('Неподдерживаемая версия backup');
           }
 
@@ -423,11 +464,11 @@ export const useStore = create<StoreState>()(
             || !Array.isArray(habits) || !Array.isArray(history)) {
             throw new Error('Данные повреждены или неполны');
           }
-          const undesired: UndesiredTask[] = data.version >= 4 && Array.isArray(data.undesired)
+          const undesiredRaw: UndesiredTask[] = data.version >= 4 && Array.isArray(data.undesired)
             ? data.undesired
             : [];
 
-          const migratedRoutine: RoutineItem[] = data.version === 1
+          const routineV2: RoutineItem[] = data.version === 1
             ? routine.map((r: { id: string; label: string; done: boolean }) => ({
                 id: r.id,
                 label: r.label,
@@ -436,11 +477,12 @@ export const useStore = create<StoreState>()(
                 mode: 'sinceLastDone' as RoutineScheduleMode,
                 startDate: today,
                 dueDate: today,
+                createdAt: today,
               }))
             : routine;
 
           const weekStart = mondayOf(today);
-          const migratedHabits: Habit[] = data.version < 3
+          const habitsV3: Habit[] = data.version < 3
             ? habits.map((h: Partial<Habit> & { id: string; label: string }) => ({
                 id: h.id,
                 label: h.label,
@@ -450,10 +492,11 @@ export const useStore = create<StoreState>()(
                 skipsAllowed: 0,
                 skipsUsed: 0,
                 skipsWeekStart: weekStart,
+                createdAt: today,
               }))
             : habits;
 
-          const migratedHistory: DayRecord[] = data.version < 4
+          const historyV4: DayRecord[] = data.version < 4
             ? history.map((raw: Partial<DayRecord>) => ({
                 ...(raw as DayRecord),
                 undesired: Array.isArray(raw.undesired) ? raw.undesired : [],
@@ -463,12 +506,34 @@ export const useStore = create<StoreState>()(
               }))
             : history;
 
+          // v4 → v5: добавляем createdAt всем сущностям и пустые routine[] в старых DayRecord.
+          const migratedRoutine: RoutineItem[] = routineV2.map((r) => ({
+            ...r,
+            createdAt: r.createdAt ?? today,
+          }));
+          const migratedHabits: Habit[] = habitsV3.map((h) => ({
+            ...h,
+            createdAt: h.createdAt ?? today,
+          }));
+          const migratedUndesired: UndesiredTask[] = undesiredRaw.map((u) => ({
+            ...u,
+            createdAt: u.createdAt ?? today,
+          }));
+          const migratedHistory: DayRecord[] = historyV4.map((raw) => ({
+            ...raw,
+            routine: Array.isArray(raw.routine) ? raw.routine : [],
+            habits: (raw.habits ?? []).map((h) => ({
+              ...h,
+              skipsAllowed: typeof h.skipsAllowed === 'number' ? h.skipsAllowed : 0,
+            })),
+          }));
+
           set({
             today,
             tasks,
             routine: migratedRoutine,
             habits: migratedHabits,
-            undesired,
+            undesired: migratedUndesired,
             history: migratedHistory,
           });
           return { ok: true };
@@ -479,7 +544,7 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'scoreflow-store',
-      version: 4,
+      version: 5,
       migrate: (persisted: unknown, version: number) => {
         if (!persisted || typeof persisted !== 'object') return persisted;
         const state = persisted as {
@@ -487,6 +552,7 @@ export const useStore = create<StoreState>()(
           routine?: unknown[];
           habits?: unknown[];
           undesired?: unknown[];
+          history?: unknown[];
         };
         const today = state.today ?? getTodayDate();
         if (version < 2 && Array.isArray(state.routine)) {
@@ -500,14 +566,14 @@ export const useStore = create<StoreState>()(
               mode: r.mode ?? ('sinceLastDone' as RoutineScheduleMode),
               startDate: r.startDate ?? today,
               dueDate: r.dueDate ?? today,
+              createdAt: today,
             } satisfies RoutineItem;
           });
         }
         if (version < 4) {
           if (!Array.isArray(state.undesired)) state.undesired = [];
-          const s2 = state as { history?: unknown[] };
-          if (Array.isArray(s2.history)) {
-            s2.history = s2.history.map((raw) => {
+          if (Array.isArray(state.history)) {
+            state.history = state.history.map((raw) => {
               const r = raw as Partial<DayRecord>;
               return {
                 ...r,
@@ -536,8 +602,42 @@ export const useStore = create<StoreState>()(
               skipsAllowed: h.skipsAllowed ?? 0,
               skipsUsed: h.skipsUsed ?? 0,
               skipsWeekStart: h.skipsWeekStart ?? weekStart,
+              createdAt: today,
             } satisfies Habit;
           });
+        }
+        if (version < 5) {
+          if (Array.isArray(state.routine)) {
+            state.routine = state.routine.map((raw) => {
+              const r = raw as Partial<RoutineItem> & { createdAt?: string };
+              return { ...r, createdAt: r.createdAt ?? today };
+            });
+          }
+          if (Array.isArray(state.habits)) {
+            state.habits = state.habits.map((raw) => {
+              const h = raw as Partial<Habit> & { createdAt?: string };
+              return { ...h, createdAt: h.createdAt ?? today };
+            });
+          }
+          if (Array.isArray(state.undesired)) {
+            state.undesired = state.undesired.map((raw) => {
+              const u = raw as Partial<UndesiredTask> & { createdAt?: string };
+              return { ...u, createdAt: u.createdAt ?? today };
+            });
+          }
+          if (Array.isArray(state.history)) {
+            state.history = state.history.map((raw) => {
+              const r = raw as Partial<DayRecord>;
+              return {
+                ...r,
+                routine: Array.isArray(r.routine) ? r.routine : [],
+                habits: (r.habits ?? []).map((h) => ({
+                  ...h,
+                  skipsAllowed: typeof h.skipsAllowed === 'number' ? h.skipsAllowed : 0,
+                })),
+              };
+            });
+          }
         }
         return state;
       },

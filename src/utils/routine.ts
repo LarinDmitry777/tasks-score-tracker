@@ -37,5 +37,6 @@ export function createRoutine(
     mode,
     startDate: today,
     dueDate: today,
+    createdAt: today,
   };
 }

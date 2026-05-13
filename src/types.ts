@@ -29,6 +29,8 @@ export interface RoutineItem {
   dueDate: string; // YYYY-MM-DD — next scheduled appearance
   prevDueDate?: string; // for same-day undo of toggle
   skippedOnDate?: string; // YYYY-MM-DD — hidden from main for this day only
+  createdAt: string; // YYYY-MM-DD
+  archivedAt?: string; // YYYY-MM-DD; presence = архивирована, исключается из UI
 }
 
 export interface Habit {
@@ -40,6 +42,8 @@ export interface Habit {
   skipsAllowed: number; // allowed misses per calendar week (Mon-Sun)
   skipsUsed: number; // misses already used in skipsWeekStart's week
   skipsWeekStart: string; // YYYY-MM-DD — Monday of the tracked week
+  createdAt: string;
+  archivedAt?: string;
 }
 
 export interface HistoryHabit {
@@ -47,6 +51,7 @@ export interface HistoryHabit {
   label: string;
   streak: number;
   bonus: number;
+  skipsAllowed: number;
 }
 
 export interface UndesiredTask {
@@ -56,6 +61,8 @@ export interface UndesiredTask {
   cleanStreak: number; // дней подряд без срыва
   lastFailDate: string | null;
   markedToday: boolean;
+  createdAt: string;
+  archivedAt?: string;
 }
 
 export interface HistoryUndesired {
@@ -65,10 +72,21 @@ export interface HistoryUndesired {
   penalty: number; // положительное число — величина штрафа
 }
 
+export interface HistoryRoutine {
+  id: string;
+  label: string;
+  done: boolean;
+  skipped: boolean;
+  intervalDays: number;
+  mode: RoutineScheduleMode;
+}
+
 export interface DayRecord {
   date: string; // "YYYY-MM-DD"
   tasks: TaskEntry[];
+  /** @deprecated сохраняется для бэкапов v<5; новые записи используют routine[] */
   routineDoneCount: number;
+  routine: HistoryRoutine[];
   habits: HistoryHabit[];
   undesired: HistoryUndesired[];
   basePoints: number;

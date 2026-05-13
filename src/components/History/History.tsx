@@ -49,12 +49,32 @@ function HistoryCard({ record }: { record: DayRecord }) {
           </div>
 
           {/* Routine */}
-          <div className={s.detailRow}>
-            <span className={s.detailLabel}>Рутина</span>
-            <span className={`${s.detailValue} ${s.accent}`}>
-              {record.routineDoneCount} дел · +{record.routineMultiplier.toFixed(2)}
-            </span>
-          </div>
+          {record.routine && record.routine.length > 0 ? (
+            <div
+              className={s.detailRow}
+              style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}
+            >
+              <span className={s.detailLabel}>
+                Рутина ({record.routine.filter((r) => r.done).length}/
+                {record.routine.length} · +{record.routineMultiplier.toFixed(2)})
+              </span>
+              {record.routine.map((r) => (
+                <div key={r.id} className={s.habitRow}>
+                  <span className={s.habitName}>
+                    {r.done ? '✓' : r.skipped ? '⊘' : '·'} {r.label}
+                  </span>
+                  <span className={s.habitInfo}>раз в {r.intervalDays} дн.</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={s.detailRow}>
+              <span className={s.detailLabel}>Рутина</span>
+              <span className={`${s.detailValue} ${s.accent}`}>
+                {record.routineDoneCount} дел · +{record.routineMultiplier.toFixed(2)}
+              </span>
+            </div>
+          )}
 
           {/* Habits */}
           {record.habits.length > 0 && (

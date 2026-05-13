@@ -10,7 +10,7 @@ function streakHint(streak: number): string {
 }
 
 export function HabitCards() {
-  const habits = useStore((st) => st.habits);
+  const habits = useStore((st) => st.habits).filter((h) => !h.archivedAt);
   const toggleHabit = useStore((st) => st.toggleHabit);
 
   return (

@@ -18,7 +18,7 @@ export function RoutineList() {
   const doneCountTotal = useMemo(
     () =>
       routine.filter(
-        (r) => isVisibleToday(r, today) && r.done && r.skippedOnDate !== today,
+        (r) => !r.archivedAt && isVisibleToday(r, today) && r.done && r.skippedOnDate !== today,
       ).length,
     [routine, today],
   );
@@ -26,7 +26,7 @@ export function RoutineList() {
   const visible = useMemo(
     () =>
       routine.filter(
-        (r) => isVisibleToday(r, today) && !r.done && r.skippedOnDate !== today,
+        (r) => !r.archivedAt && isVisibleToday(r, today) && !r.done && r.skippedOnDate !== today,
       ),
     [routine, today],
   );

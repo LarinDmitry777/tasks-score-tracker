@@ -174,9 +174,9 @@ export function SettingsPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {[
               { label: '📅 Дней в истории', value: history.length },
-              { label: '✅ Пунктов рутины', value: routine.length },
-              { label: '🔥 Привычек', value: habits.length },
-              { label: '⚠️ Нежелательных', value: undesired.length },
+              { label: '✅ Пунктов рутины', value: routine.filter((r) => !r.archivedAt).length },
+              { label: '🔥 Привычек', value: habits.filter((h) => !h.archivedAt).length },
+              { label: '⚠️ Нежелательных', value: undesired.filter((u) => !u.archivedAt).length },
               {
                 label: '🏆 Лучший день',
                 value: history.length

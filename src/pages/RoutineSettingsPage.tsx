@@ -33,7 +33,7 @@ function intervalLabel(n: number): string {
 }
 
 export function RoutineSettingsPage({ onBack }: Props) {
-  const routine = useStore((st) => st.routine);
+  const routine = useStore((st) => st.routine).filter((r) => !r.archivedAt);
   const today = useStore((st) => st.today);
   const addRoutine = useStore((st) => st.addRoutine);
   const editRoutine = useStore((st) => st.editRoutine);

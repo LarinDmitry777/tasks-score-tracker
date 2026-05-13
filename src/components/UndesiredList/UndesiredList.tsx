@@ -11,7 +11,7 @@ function cleanLabel(days: number): string {
 }
 
 export function UndesiredList() {
-  const undesired = useStore((st) => st.undesired);
+  const undesired = useStore((st) => st.undesired).filter((u) => !u.archivedAt);
   const toggleUndesired = useStore((st) => st.toggleUndesired);
 
   if (undesired.length === 0) return null;
