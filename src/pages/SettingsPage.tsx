@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useStore } from '../store/useStore';
 import { HabitSettingsPage } from './HabitSettingsPage';
 import { RoutineSettingsPage } from './RoutineSettingsPage';
+import { UndesiredSettingsPage } from './UndesiredSettingsPage';
 import s from './SettingsPage.module.css';
 
 type ToastState = { type: 'success' | 'error'; message: string } | null;
@@ -12,18 +13,22 @@ export function SettingsPage() {
   const history = useStore((st) => st.history);
   const habits = useStore((st) => st.habits);
   const routine = useStore((st) => st.routine);
+  const undesired = useStore((st) => st.undesired);
   const today = useStore((st) => st.today);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [toast, setToast] = useState<ToastState>(null);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [view, setView] = useState<'main' | 'routine' | 'habits'>('main');
+  const [view, setView] = useState<'main' | 'routine' | 'habits' | 'undesired'>('main');
 
   if (view === 'routine') {
     return <RoutineSettingsPage onBack={() => setView('main')} />;
   }
   if (view === 'habits') {
     return <HabitSettingsPage onBack={() => setView('main')} />;
+  }
+  if (view === 'undesired') {
+    return <UndesiredSettingsPage onBack={() => setView('main')} />;
   }
 
   const showToast = (type: 'success' | 'error', message: string) => {
@@ -102,6 +107,24 @@ export function SettingsPage() {
         </div>
       </section>
 
+      {/* Undesired tasks management */}
+      <section className={s.section}>
+        <p className={s.sectionTitle}>Нежелательное</p>
+        <div className={s.card}>
+          <p className={s.cardDesc}>
+            Список задач, отметка которых уменьшает множитель за день
+            (например, «Переел»). Штраф растёт со стриком срывов.
+          </p>
+          <button
+            className={`${s.btn} ${s.btnExport}`}
+            onClick={() => setView('undesired')}
+            type="button"
+          >
+            ⚠️ Управление нежелательным
+          </button>
+        </div>
+      </section>
+
       {/* Export / Import */}
       <section className={s.section}>
         <p className={s.sectionTitle}>Перенос данных</p>
@@ -153,6 +176,7 @@ export function SettingsPage() {
               { label: '📅 Дней в истории', value: history.length },
               { label: '✅ Пунктов рутины', value: routine.length },
               { label: '🔥 Привычек', value: habits.length },
+              { label: '⚠️ Нежелательных', value: undesired.length },
               {
                 label: '🏆 Лучший день',
                 value: history.length

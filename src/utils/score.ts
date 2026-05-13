@@ -1,5 +1,5 @@
-import { ROUTINE_BONUSES, TASK_POINTS } from '../types';
-import type { Habit, RoutineItem, TaskEntry } from '../types';
+import { ROUTINE_BONUSES, TASK_POINTS, UNDESIRED_PENALTY_CAP, UNDESIRED_PENALTY_STEP } from '../types';
+import type { Habit, RoutineItem, TaskEntry, UndesiredTask } from '../types';
 
 function formatLocalDate(d: Date): string {
   const y = d.getFullYear();
@@ -47,23 +47,47 @@ export function calcHabitMultiplier(habits: Habit[]): number {
   return Math.round(bonus * 100) / 100;
 }
 
+export function calcUndesiredPenalty(failStreak: number): number {
+  if (failStreak <= 0) return 0;
+  const raw = failStreak * UNDESIRED_PENALTY_STEP;
+  return Math.round(Math.min(UNDESIRED_PENALTY_CAP, raw) * 100) / 100;
+}
+
+export function calcUndesiredMultiplier(items: UndesiredTask[]): number {
+  const penalty = items
+    .filter((u) => u.markedToday)
+    .reduce((sum, u) => sum + calcUndesiredPenalty(u.failStreak), 0);
+  return Math.round(penalty * 100) / 100;
+}
+
 export function calcTotalScore(
   tasks: TaskEntry[],
   routine: RoutineItem[],
   habits: Habit[],
+  undesired: UndesiredTask[] = [],
 ): {
   basePoints: number;
   routineMultiplier: number;
   habitMultiplier: number;
+  undesiredPenalty: number;
   totalMultiplier: number;
   totalScore: number;
 } {
   const basePoints = calcBasePoints(tasks);
   const routineMultiplier = calcRoutineMultiplier(routine);
   const habitMultiplier = calcHabitMultiplier(habits);
-  const totalMultiplier = 1.0 + routineMultiplier + habitMultiplier;
+  const undesiredPenalty = calcUndesiredMultiplier(undesired);
+  const rawMultiplier = 1.0 + routineMultiplier + habitMultiplier - undesiredPenalty;
+  const totalMultiplier = Math.max(0, Math.round(rawMultiplier * 100) / 100);
   const totalScore = Math.round(basePoints * totalMultiplier);
-  return { basePoints, routineMultiplier, habitMultiplier, totalMultiplier, totalScore };
+  return {
+    basePoints,
+    routineMultiplier,
+    habitMultiplier,
+    undesiredPenalty,
+    totalMultiplier,
+    totalScore,
+  };
 }
 
 export function nextRoutineBonus(doneCount: number): number {

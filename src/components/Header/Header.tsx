@@ -17,14 +17,22 @@ export function Header() {
   const tasks = useStore((st) => st.tasks);
   const routine = useStore((st) => st.routine);
   const habits = useStore((st) => st.habits);
+  const undesired = useStore((st) => st.undesired);
   const today = useStore((st) => st.today);
 
-  const { basePoints, routineMultiplier, habitMultiplier, totalMultiplier, totalScore } =
-    calcTotalScore(tasks, routine, habits);
+  const {
+    basePoints,
+    routineMultiplier,
+    habitMultiplier,
+    undesiredPenalty,
+    totalMultiplier,
+    totalScore,
+  } = calcTotalScore(tasks, routine, habits, undesired);
 
   const multiplierParts: string[] = [];
   if (routineMultiplier > 0) multiplierParts.push(`рутина +${routineMultiplier.toFixed(2)}`);
   if (habitMultiplier > 0) multiplierParts.push(`привычки +${habitMultiplier.toFixed(2)}`);
+  if (undesiredPenalty > 0) multiplierParts.push(`штраф −${undesiredPenalty.toFixed(2)}`);
 
   return (
     <header className={s.header}>

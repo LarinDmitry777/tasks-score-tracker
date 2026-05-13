@@ -8,6 +8,9 @@ export const TASK_POINTS: Record<TaskSize, number> = {
 
 export const ROUTINE_BONUSES = [0.15, 0.10, 0.07, 0.05, 0.02];
 
+export const UNDESIRED_PENALTY_STEP = 0.05;
+export const UNDESIRED_PENALTY_CAP = 0.50;
+
 export interface TaskEntry {
   id: string;
   size: TaskSize;
@@ -46,14 +49,32 @@ export interface HistoryHabit {
   bonus: number;
 }
 
+export interface UndesiredTask {
+  id: string;
+  label: string;
+  failStreak: number; // дней подряд с отметкой срыва
+  cleanStreak: number; // дней подряд без срыва
+  lastFailDate: string | null;
+  markedToday: boolean;
+}
+
+export interface HistoryUndesired {
+  id: string;
+  label: string;
+  failStreak: number;
+  penalty: number; // положительное число — величина штрафа
+}
+
 export interface DayRecord {
   date: string; // "YYYY-MM-DD"
   tasks: TaskEntry[];
   routineDoneCount: number;
   habits: HistoryHabit[];
+  undesired: HistoryUndesired[];
   basePoints: number;
   routineMultiplier: number;
   habitMultiplier: number;
+  undesiredPenalty: number;
   totalMultiplier: number;
   totalScore: number;
 }

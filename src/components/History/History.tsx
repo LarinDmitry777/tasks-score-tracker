@@ -71,6 +71,23 @@ function HistoryCard({ record }: { record: DayRecord }) {
             </div>
           )}
 
+          {/* Undesired tasks */}
+          {(record.undesired?.length ?? 0) > 0 && (record.undesiredPenalty ?? 0) > 0 && (
+            <div className={s.detailRow} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
+              <span className={s.detailLabel}>Срывы (−{(record.undesiredPenalty ?? 0).toFixed(2)})</span>
+              {record.undesired
+                .filter((u) => u.penalty > 0)
+                .map((u) => (
+                  <div key={u.id} className={s.habitRow}>
+                    <span className={s.habitName}>{u.label}</span>
+                    <span className={s.habitInfo}>
+                      ⚠️{u.failStreak} · −{u.penalty.toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+            </div>
+          )}
+
           {/* Formula */}
           <div className={s.formulaBox}>
             {record.basePoints} BP × {record.totalMultiplier.toFixed(2)}
