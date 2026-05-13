@@ -9,7 +9,7 @@ interface Props {
 
 interface DraftValues {
   label: string;
-  skipsAllowed: number;
+  skipsAllowed: string;
 }
 
 function skipsLabel(n: number): string {
@@ -26,7 +26,7 @@ export function HabitSettingsPage({ onBack }: Props) {
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Habit | null>(null);
-  const [draft, setDraft] = useState<DraftValues>({ label: '', skipsAllowed: 0 });
+  const [draft, setDraft] = useState<DraftValues>({ label: '', skipsAllowed: '0' });
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const sorted = useMemo(
@@ -36,13 +36,13 @@ export function HabitSettingsPage({ onBack }: Props) {
 
   const openAdd = () => {
     setEditTarget(null);
-    setDraft({ label: '', skipsAllowed: 0 });
+    setDraft({ label: '', skipsAllowed: '0' });
     setEditorOpen(true);
   };
 
   const openEdit = (h: Habit) => {
     setEditTarget(h);
-    setDraft({ label: h.label, skipsAllowed: h.skipsAllowed });
+    setDraft({ label: h.label, skipsAllowed: String(h.skipsAllowed) });
     setEditorOpen(true);
   };
 
@@ -54,7 +54,7 @@ export function HabitSettingsPage({ onBack }: Props) {
   const saveDraft = () => {
     const label = draft.label.trim();
     if (!label) return;
-    const skips = Math.max(0, Math.min(7, Math.floor(draft.skipsAllowed || 0)));
+    const skips = Math.max(0, Math.min(7, Math.floor(Number(draft.skipsAllowed) || 0)));
     if (editTarget) {
       editHabit(editTarget.id, { label, skipsAllowed: skips });
     } else {
@@ -172,11 +172,11 @@ export function HabitSettingsPage({ onBack }: Props) {
                 max={7}
                 value={draft.skipsAllowed}
                 onChange={(e) =>
-                  setDraft((d) => ({ ...d, skipsAllowed: Number(e.target.value) || 0 }))
+                  setDraft((d) => ({ ...d, skipsAllowed: e.target.value }))
                 }
               />
               <span className={s.hint}>
-                {skipsLabel(Math.max(0, Math.min(7, Math.floor(draft.skipsAllowed || 0))))}.
+                {skipsLabel(Math.max(0, Math.min(7, Math.floor(Number(draft.skipsAllowed) || 0))))}.
                 Счётчик пропусков обнуляется в понедельник.
               </span>
             </label>

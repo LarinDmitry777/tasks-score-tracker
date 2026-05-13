@@ -9,7 +9,7 @@ interface Props {
 
 interface DraftValues {
   label: string;
-  intervalDays: number;
+  intervalDays: string;
   mode: RoutineScheduleMode;
 }
 
@@ -46,7 +46,7 @@ export function RoutineSettingsPage({ onBack }: Props) {
   const [editTarget, setEditTarget] = useState<RoutineItem | null>(null);
   const [draft, setDraft] = useState<DraftValues>({
     label: '',
-    intervalDays: 1,
+    intervalDays: '1',
     mode: 'sinceLastDone',
   });
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -58,13 +58,13 @@ export function RoutineSettingsPage({ onBack }: Props) {
 
   const openAdd = () => {
     setEditTarget(null);
-    setDraft({ label: '', intervalDays: 1, mode: 'sinceLastDone' });
+    setDraft({ label: '', intervalDays: '1', mode: 'sinceLastDone' });
     setEditorOpen(true);
   };
 
   const openEdit = (item: RoutineItem) => {
     setEditTarget(item);
-    setDraft({ label: item.label, intervalDays: item.intervalDays, mode: item.mode });
+    setDraft({ label: item.label, intervalDays: String(item.intervalDays), mode: item.mode });
     setEditorOpen(true);
   };
 
@@ -76,7 +76,7 @@ export function RoutineSettingsPage({ onBack }: Props) {
   const saveDraft = () => {
     const label = draft.label.trim();
     if (!label) return;
-    const interval = Math.max(1, Math.floor(draft.intervalDays || 1));
+    const interval = Math.max(1, Math.floor(Number(draft.intervalDays) || 1));
     if (editTarget) {
       editRoutine(editTarget.id, { label, intervalDays: interval, mode: draft.mode });
     } else {
@@ -231,11 +231,11 @@ export function RoutineSettingsPage({ onBack }: Props) {
                 max={365}
                 value={draft.intervalDays}
                 onChange={(e) =>
-                  setDraft((d) => ({ ...d, intervalDays: Number(e.target.value) || 1 }))
+                  setDraft((d) => ({ ...d, intervalDays: e.target.value }))
                 }
               />
               <span className={s.hint}>
-                {intervalLabel(Math.max(1, Math.floor(draft.intervalDays || 1)))}
+                {intervalLabel(Math.max(1, Math.floor(Number(draft.intervalDays) || 1)))}
               </span>
             </label>
 
