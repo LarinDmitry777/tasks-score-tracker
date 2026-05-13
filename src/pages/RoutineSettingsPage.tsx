@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import type { RoutineItem, RoutineScheduleMode } from '../types';
 import s from './RoutineSettingsPage.module.css';
@@ -41,6 +41,7 @@ export function RoutineSettingsPage({ onBack }: Props) {
   const toggleRoutine = useStore((st) => st.toggleRoutine);
   const skipRoutineToday = useStore((st) => st.skipRoutineToday);
   const unskipRoutineToday = useStore((st) => st.unskipRoutineToday);
+  const moveRoutine = useStore((st) => st.moveRoutine);
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<RoutineItem | null>(null);
@@ -50,11 +51,6 @@ export function RoutineSettingsPage({ onBack }: Props) {
     mode: 'sinceLastDone',
   });
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-
-  const sorted = useMemo(
-    () => [...routine].sort((a, b) => a.label.localeCompare(b.label, 'ru')),
-    [routine],
-  );
 
   const openAdd = () => {
     setEditTarget(null);
@@ -100,11 +96,11 @@ export function RoutineSettingsPage({ onBack }: Props) {
         <button className={s.addBtn} onClick={openAdd} type="button">+ Добавить</button>
       </div>
 
-      {sorted.length === 0 ? (
+      {routine.length === 0 ? (
         <p className={s.emptyHint}>Список пуст. Добавьте первое рутинное дело.</p>
       ) : (
         <ul className={s.list}>
-          {sorted.map((item) => {
+          {routine.map((item, idx) => {
             const skippedToday = item.skippedOnDate === today;
             const dueToday = item.dueDate <= today;
             const onMain = dueToday && !item.done && !skippedToday;
@@ -136,6 +132,24 @@ export function RoutineSettingsPage({ onBack }: Props) {
                 )}
               </div>
               <div className={s.itemActions}>
+                <button
+                  className={s.iconBtn}
+                  onClick={() => moveRoutine(item.id, 'up')}
+                  type="button"
+                  aria-label="Переместить выше"
+                  disabled={idx === 0}
+                >
+                  ↑
+                </button>
+                <button
+                  className={s.iconBtn}
+                  onClick={() => moveRoutine(item.id, 'down')}
+                  type="button"
+                  aria-label="Переместить ниже"
+                  disabled={idx === routine.length - 1}
+                >
+                  ↓
+                </button>
                 {item.done && (
                   <button
                     className={s.iconBtn}

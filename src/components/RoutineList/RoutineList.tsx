@@ -23,14 +23,13 @@ export function RoutineList() {
     [routine, today],
   );
 
-  const visible = useMemo(() => {
-    const pending = routine.filter(
-      (r) => isVisibleToday(r, today) && !r.done && r.skippedOnDate !== today,
-    );
-    const periodic = pending.filter((r) => r.intervalDays > 1);
-    const daily = pending.filter((r) => r.intervalDays <= 1);
-    return [...periodic, ...daily];
-  }, [routine, today]);
+  const visible = useMemo(
+    () =>
+      routine.filter(
+        (r) => isVisibleToday(r, today) && !r.done && r.skippedOnDate !== today,
+      ),
+    [routine, today],
+  );
 
   const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map());
   const prevPositions = useRef<Map<string, number>>(new Map());

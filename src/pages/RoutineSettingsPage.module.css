@@ -164,6 +164,15 @@
   transform: scale(0.94);
 }
 
+.iconBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.iconBtn:disabled:active {
+  transform: none;
+}
+
 .iconBtn.danger {
   border-color: rgba(239, 68, 68, 0.3);
 }

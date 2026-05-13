@@ -39,6 +39,7 @@ interface StoreState {
   deleteRoutine: (id: string) => void;
   skipRoutineToday: (id: string) => void;
   unskipRoutineToday: (id: string) => void;
+  moveRoutine: (id: string, direction: 'up' | 'down') => void;
 
   // Habit actions
   toggleHabit: (id: string) => void;
@@ -101,10 +102,7 @@ export const useStore = create<StoreState>()(
               dueDate: computeNextDueDate(target, today),
             };
           }
-          const others = s.routine.filter((r) => r.id !== id);
-          const doneItems = others.filter((r) => r.done);
-          const undoneItems = others.filter((r) => !r.done);
-          return { routine: [...undoneItems, updated, ...doneItems] };
+          return { routine: s.routine.map((r) => (r.id === id ? updated : r)) };
         });
       },
 
@@ -148,6 +146,18 @@ export const useStore = create<StoreState>()(
             r.id === id ? { ...r, skippedOnDate: undefined } : r,
           ),
         }));
+      },
+
+      moveRoutine: (id, direction) => {
+        set((s) => {
+          const idx = s.routine.findIndex((r) => r.id === id);
+          if (idx === -1) return s;
+          const target = direction === 'up' ? idx - 1 : idx + 1;
+          if (target < 0 || target >= s.routine.length) return s;
+          const next = s.routine.slice();
+          [next[idx], next[target]] = [next[target], next[idx]];
+          return { routine: next };
+        });
       },
 
       toggleHabit: (id) => {
