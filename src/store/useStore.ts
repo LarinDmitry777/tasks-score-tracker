@@ -437,9 +437,18 @@ export const useStore = create<StoreState>()(
 
           // v5 → v6: проставить kind: 'mandatory' всем рутинам, очистить историю
           const migratedRoutine: RoutineItem[] = routine.map((r: Partial<RoutineItem> & { id: string; label: string }) => ({
-            ...r,
-            createdAt: r.createdAt ?? today,
+            id: r.id,
+            label: r.label,
+            done: r.done ?? false,
+            intervalDays: r.intervalDays ?? 1,
+            mode: r.mode ?? ('sinceLastDone' as RoutineScheduleMode),
             kind: r.kind ?? ('mandatory' as RoutineKind),
+            startDate: r.startDate ?? today,
+            dueDate: r.dueDate ?? today,
+            createdAt: r.createdAt ?? today,
+            prevDueDate: r.prevDueDate,
+            skippedOnDate: r.skippedOnDate,
+            archivedAt: r.archivedAt,
           }));
 
           const weekStart = mondayOf(today);
