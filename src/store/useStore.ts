@@ -572,9 +572,19 @@ export const useStore = create<StoreState>()(
           state.routine = state.routine.map((raw) => {
             const r = raw as Partial<RoutineItem> & { id: string; label: string; done?: boolean };
             return {
-              ...r,
+              id: r.id,
+              label: r.label,
               done: r.done ?? false,
+              intervalDays: r.intervalDays ?? 1,
+              mode: r.mode ?? ('sinceLastDone' as RoutineScheduleMode),
+              kind: r.kind ?? ('mandatory' as RoutineKind),
               timeOfDay: r.timeOfDay ?? ('day' as RoutineTimeOfDay),
+              startDate: r.startDate ?? (state.today as string),
+              dueDate: r.dueDate ?? (state.today as string),
+              createdAt: r.createdAt ?? (state.today as string),
+              prevDueDate: r.prevDueDate,
+              skippedOnDate: r.skippedOnDate,
+              archivedAt: r.archivedAt,
             } satisfies RoutineItem;
           });
         }

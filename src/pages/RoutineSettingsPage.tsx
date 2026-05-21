@@ -52,6 +52,7 @@ export function RoutineSettingsPage({ onBack }: Props) {
     intervalDays: '1',
     mode: 'sinceLastDone',
     kind: 'mandatory',
+    timeOfDay: 'day',
   });
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
