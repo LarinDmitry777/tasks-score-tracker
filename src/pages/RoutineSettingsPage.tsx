@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
-import type { RoutineItem, RoutineScheduleMode } from '../types';
+import type { RoutineItem, RoutineKind, RoutineScheduleMode } from '../types';
 import s from './RoutineSettingsPage.module.css';
 
 interface Props {
@@ -11,6 +11,7 @@ interface DraftValues {
   label: string;
   intervalDays: string;
   mode: RoutineScheduleMode;
+  kind: RoutineKind;
 }
 
 const DAY_NAMES = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
@@ -49,18 +50,24 @@ export function RoutineSettingsPage({ onBack }: Props) {
     label: '',
     intervalDays: '1',
     mode: 'sinceLastDone',
+    kind: 'mandatory',
   });
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const openAdd = () => {
     setEditTarget(null);
-    setDraft({ label: '', intervalDays: '1', mode: 'sinceLastDone' });
+    setDraft({ label: '', intervalDays: '1', mode: 'sinceLastDone', kind: 'mandatory' });
     setEditorOpen(true);
   };
 
   const openEdit = (item: RoutineItem) => {
     setEditTarget(item);
-    setDraft({ label: item.label, intervalDays: String(item.intervalDays), mode: item.mode });
+    setDraft({
+      label: item.label,
+      intervalDays: String(item.intervalDays),
+      mode: item.mode,
+      kind: item.kind,
+    });
     setEditorOpen(true);
   };
 
@@ -74,9 +81,9 @@ export function RoutineSettingsPage({ onBack }: Props) {
     if (!label) return;
     const interval = Math.max(1, Math.floor(Number(draft.intervalDays) || 1));
     if (editTarget) {
-      editRoutine(editTarget.id, { label, intervalDays: interval, mode: draft.mode });
+      editRoutine(editTarget.id, { label, intervalDays: interval, mode: draft.mode, kind: draft.kind });
     } else {
-      addRoutine(label, interval, draft.mode);
+      addRoutine(label, interval, draft.mode, draft.kind);
     }
     closeEditor();
   };
@@ -107,7 +114,12 @@ export function RoutineSettingsPage({ onBack }: Props) {
             return (
             <li key={item.id} className={s.item}>
               <div className={s.itemMain}>
-                <p className={s.itemLabel}>{item.label}</p>
+                <p className={s.itemLabel}>
+                  {item.label}
+                  <span className={`${s.kindBadge} ${item.kind === 'optional' ? s.optional : s.mandatory}`}>
+                    {item.kind === 'optional' ? 'опц.' : 'обяз.'}
+                  </span>
+                </p>
                 <div className={s.badges}>
                   <span className={s.badge}>{intervalLabel(item.intervalDays)}</span>
                   <span className={s.badge}>{modeLabel(item.mode)}</span>
@@ -235,6 +247,28 @@ export function RoutineSettingsPage({ onBack }: Props) {
                 autoFocus
               />
             </label>
+
+            <div className={s.field}>
+              <span className={s.fieldLabel}>Тип</span>
+              <div className={s.modeOptions}>
+                <button
+                  type="button"
+                  className={`${s.modeBtn} ${draft.kind === 'mandatory' ? s.modeActive : ''}`}
+                  onClick={() => setDraft((d) => ({ ...d, kind: 'mandatory' }))}
+                >
+                  <span className={s.modeTitle}>Обязательная</span>
+                  <span className={s.modeDesc}>Всегда учитывается в статистике дня</span>
+                </button>
+                <button
+                  type="button"
+                  className={`${s.modeBtn} ${draft.kind === 'optional' ? s.modeActive : ''}`}
+                  onClick={() => setDraft((d) => ({ ...d, kind: 'optional' }))}
+                >
+                  <span className={s.modeTitle}>Опциональная</span>
+                  <span className={s.modeDesc}>Можно отменить свайпом — не учитывается в статистике</span>
+                </button>
+              </div>
+            </div>
 
             <label className={s.field}>
               <span className={s.fieldLabel}>Частота (раз в N дней)</span>

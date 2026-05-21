@@ -75,7 +75,7 @@ export function UndesiredSettingsPage({ onBack }: Props) {
 
       {sorted.length === 0 ? (
         <p className={s.emptyHint}>
-          Список пуст. Добавьте задачу, отметка которой будет уменьшать множитель
+          Список пуст. Добавьте нежелательное действие для отслеживания срывов
           (например: «Переел»).
         </p>
       ) : (
@@ -152,8 +152,7 @@ export function UndesiredSettingsPage({ onBack }: Props) {
                 autoFocus
               />
               <span className={s.hint}>
-                За каждую отметку срыва множитель уменьшается на 0.05 ×
-                (длина серии срывов), максимум −0.50.
+                Отслеживает серию срывов подряд и чистую серию.
               </span>
             </label>
 

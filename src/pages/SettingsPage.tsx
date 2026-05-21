@@ -112,8 +112,8 @@ export function SettingsPage() {
         <p className={s.sectionTitle}>Нежелательное</p>
         <div className={s.card}>
           <p className={s.cardDesc}>
-            Список задач, отметка которых уменьшает множитель за день
-            (например, «Переел»). Штраф растёт со стриком срывов.
+            Список нежелательных действий для отслеживания срывов
+            (например, «Переел»).
           </p>
           <button
             className={`${s.btn} ${s.btnExport}`}
@@ -177,12 +177,6 @@ export function SettingsPage() {
               { label: '✅ Пунктов рутины', value: routine.filter((r) => !r.archivedAt).length },
               { label: '🔥 Привычек', value: habits.filter((h) => !h.archivedAt).length },
               { label: '⚠️ Нежелательных', value: undesired.filter((u) => !u.archivedAt).length },
-              {
-                label: '🏆 Лучший день',
-                value: history.length
-                  ? `${Math.max(...history.map((d) => d.totalScore))} pts`
-                  : '—',
-              },
             ].map(({ label, value }) => (
               <div
                 key={label}

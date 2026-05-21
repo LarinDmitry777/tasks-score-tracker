@@ -33,8 +33,8 @@
 
 .cardHeader {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
   padding: 14px 16px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -44,21 +44,36 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--text-secondary);
+  flex-shrink: 0;
 }
 
-.cardScore {
-  font-size: 22px;
-  font-weight: 800;
-  background: linear-gradient(135deg, #f59e0b, #fbbf24);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.cardCounters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.counterChip {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+}
+
+.failChip {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
 }
 
 .expandIcon {
   color: var(--text-muted);
   font-size: 12px;
   transition: transform 0.2s;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .expandIcon.open {
@@ -69,6 +84,9 @@
   padding: 0 16px 16px;
   border-top: 1px solid var(--border);
   animation: expand 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 @keyframes expand {
@@ -76,85 +94,50 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.detailRow {
+.detailSection {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  font-size: 14px;
-  color: var(--text-secondary);
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-}
-
-.detailRow:last-child {
-  border-bottom: none;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 12px;
 }
 
 .detailLabel {
-  color: var(--text-muted);
-}
-
-.detailValue {
+  font-size: 11px;
   font-weight: 600;
-  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
 }
-
-.detailValue.accent {
-  color: var(--accent);
-}
-
-.detailValue.gold {
-  color: #f59e0b;
-}
-
-.tasksRow {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.taskChip {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 6px;
-}
-
-.taskChip.S { color: #10b981; background: rgba(16, 185, 129, 0.12); }
-.taskChip.M { color: #a855f7; background: rgba(168, 85, 247, 0.12); }
-.taskChip.L { color: #f59e0b; background: rgba(245, 158, 11, 0.12); }
 
 .habitRow {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 4px 0;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.habitStatus {
+  font-size: 14px;
+  width: 20px;
+  flex-shrink: 0;
 }
 
 .habitName {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
+  flex: 1;
 }
 
 .habitInfo {
-  display: flex;
-  gap: 6px;
   font-size: 12px;
   color: #10b981;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
-.formulaBox {
-  margin-top: 10px;
-  padding: 10px 12px;
-  background: rgba(168, 85, 247, 0.07);
-  border-radius: 10px;
-  border: 1px solid rgba(168, 85, 247, 0.15);
+.kindMark {
   font-size: 12px;
   color: var(--text-muted);
-  line-height: 1.6;
-}
-
-.formulaBox strong {
-  color: #f59e0b;
+  flex-shrink: 0;
 }

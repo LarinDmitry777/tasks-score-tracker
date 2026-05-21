@@ -17,103 +17,75 @@ function formatDate(dateStr: string): string {
 function HistoryCard({ record }: { record: DayRecord }) {
   const [open, setOpen] = useState(false);
 
-  const sCount = record.tasks.filter((t) => t.size === 'S').length;
-  const mCount = record.tasks.filter((t) => t.size === 'M').length;
-  const lCount = record.tasks.filter((t) => t.size === 'L').length;
-
   return (
     <div className={s.card}>
       <div className={s.cardHeader} onClick={() => setOpen((v) => !v)}>
         <span className={s.cardDate}>{formatDate(record.date)}</span>
-        <span className={s.cardScore}>{record.totalScore}</span>
+        <div className={s.cardCounters}>
+          <span className={s.counterChip}>
+            Рутины: {record.routineCompleted}/{record.routineTotal}
+          </span>
+          <span className={s.counterChip}>
+            Привычки: {record.habitsDone}/{record.habitsTotal}
+          </span>
+          {record.negativeFails > 0 && (
+            <span className={`${s.counterChip} ${s.failChip}`}>
+              Срывы: {record.negativeFails}
+            </span>
+          )}
+        </div>
         <span className={`${s.expandIcon} ${open ? s.open : ''}`}>▼</span>
       </div>
 
       {open && (
         <div className={s.details}>
-          {/* Tasks */}
-          <div className={s.detailRow}>
-            <span className={s.detailLabel}>Задачи</span>
-            <div className={s.tasksRow}>
-              {sCount > 0 && <span className={`${s.taskChip} ${s.S}`}>S×{sCount}</span>}
-              {mCount > 0 && <span className={`${s.taskChip} ${s.M}`}>M×{mCount}</span>}
-              {lCount > 0 && <span className={`${s.taskChip} ${s.L}`}>L×{lCount}</span>}
-              {sCount + mCount + lCount === 0 && <span style={{ color: 'var(--text-muted)' }}>—</span>}
-            </div>
-          </div>
-
-          {/* Base points */}
-          <div className={s.detailRow}>
-            <span className={s.detailLabel}>Базовые очки</span>
-            <span className={`${s.detailValue}`}>{record.basePoints} BP</span>
-          </div>
-
-          {/* Routine */}
-          {record.routine && record.routine.length > 0 ? (
-            <div
-              className={s.detailRow}
-              style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}
-            >
-              <span className={s.detailLabel}>
-                Рутина ({record.routine.filter((r) => r.done).length}/
-                {record.routine.length} · +{record.routineMultiplier.toFixed(2)})
-              </span>
+          {/* Routines */}
+          {record.routine.length > 0 && (
+            <div className={s.detailSection}>
+              <span className={s.detailLabel}>Рутины</span>
               {record.routine.map((r) => (
                 <div key={r.id} className={s.habitRow}>
-                  <span className={s.habitName}>
-                    {r.done ? '✓' : r.skipped ? '⊘' : '·'} {r.label}
+                  <span className={s.habitStatus}>
+                    {r.done ? '✓' : r.skipped ? '⊘' : '·'}
                   </span>
-                  <span className={s.habitInfo}>раз в {r.intervalDays} дн.</span>
+                  <span className={s.habitName}>{r.label}</span>
+                  {r.kind === 'optional' && (
+                    <span className={s.kindMark}>○</span>
+                  )}
                 </div>
               ))}
-            </div>
-          ) : (
-            <div className={s.detailRow}>
-              <span className={s.detailLabel}>Рутина</span>
-              <span className={`${s.detailValue} ${s.accent}`}>
-                {record.routineDoneCount} дел · +{record.routineMultiplier.toFixed(2)}
-              </span>
             </div>
           )}
 
           {/* Habits */}
           {record.habits.length > 0 && (
-            <div className={s.detailRow} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
-              <span className={s.detailLabel}>Привычки (+{record.habitMultiplier.toFixed(2)})</span>
+            <div className={s.detailSection}>
+              <span className={s.detailLabel}>Привычки</span>
               {record.habits.map((h) => (
                 <div key={h.id} className={s.habitRow}>
+                  <span className={s.habitStatus}>{h.doneToday ? '✓' : '✗'}</span>
                   <span className={s.habitName}>{h.label}</span>
-                  <span className={s.habitInfo}>
-                    🔥{h.streak} · +{h.bonus.toFixed(2)}
-                  </span>
+                  <span className={s.habitInfo}>🔥{h.streak}</span>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Undesired tasks */}
-          {(record.undesired?.length ?? 0) > 0 && (record.undesiredPenalty ?? 0) > 0 && (
-            <div className={s.detailRow} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
-              <span className={s.detailLabel}>Срывы (−{(record.undesiredPenalty ?? 0).toFixed(2)})</span>
-              {record.undesired
-                .filter((u) => u.penalty > 0)
-                .map((u) => (
-                  <div key={u.id} className={s.habitRow}>
-                    <span className={s.habitName}>{u.label}</span>
-                    <span className={s.habitInfo}>
-                      ⚠️{u.failStreak} · −{u.penalty.toFixed(2)}
-                    </span>
-                  </div>
-                ))}
+          {/* Undesired */}
+          {record.undesired.length > 0 && (
+            <div className={s.detailSection}>
+              <span className={s.detailLabel}>Нежелательное</span>
+              {record.undesired.map((u) => (
+                <div key={u.id} className={s.habitRow}>
+                  <span className={s.habitStatus}>{u.markedToday ? '⚠️' : '✓'}</span>
+                  <span className={s.habitName}>{u.label}</span>
+                  {u.failStreak > 0 && (
+                    <span className={s.habitInfo}>{u.failStreak} дн.</span>
+                  )}
+                </div>
+              ))}
             </div>
           )}
-
-          {/* Formula */}
-          <div className={s.formulaBox}>
-            {record.basePoints} BP × {record.totalMultiplier.toFixed(2)}
-            {' = '}
-            <strong>{record.totalScore}</strong>
-          </div>
         </div>
       )}
     </div>

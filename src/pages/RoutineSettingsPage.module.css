@@ -84,6 +84,28 @@
   color: var(--text-primary);
   margin: 0;
   word-break: break-word;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.kindBadge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.kindBadge.mandatory {
+  color: #60a5fa;
+  background: rgba(96, 165, 250, 0.12);
+}
+
+.kindBadge.optional {
+  color: #a3e635;
+  background: rgba(163, 230, 53, 0.12);
 }
 
 .badges {

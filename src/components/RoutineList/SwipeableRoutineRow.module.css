@@ -1,0 +1,34 @@
+.wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.cancelZone {
+  position: absolute;
+  inset: 0;
+  background: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 24px;
+  opacity: 0;
+  transition: opacity 0.1s;
+  z-index: 0;
+}
+
+.cancelZone.visible {
+  opacity: 1;
+}
+
+.cancelIcon {
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.row {
+  position: relative;
+  z-index: 1;
+  background: var(--card);
+  will-change: transform;
+}

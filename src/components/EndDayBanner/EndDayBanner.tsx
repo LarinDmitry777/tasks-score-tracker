@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '../../store/useStore';
-import { getTodayDate } from '../../utils/score';
+import { getTodayDate } from '../../utils/week';
 import s from './EndDayBanner.module.css';
 
 export function EndDayBanner() {

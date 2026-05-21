@@ -1,5 +1,6 @@
+import { useMemo } from 'react';
 import { useStore } from '../../store/useStore';
-import { calcTotalScore } from '../../utils/score';
+import { isVisibleToday } from '../../utils/routine';
 import s from './Header.module.css';
 
 const DAY_NAMES = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
@@ -14,46 +15,38 @@ function formatDate(dateStr: string): string {
 }
 
 export function Header() {
-  const tasks = useStore((st) => st.tasks);
   const routine = useStore((st) => st.routine);
   const habits = useStore((st) => st.habits);
-  const undesired = useStore((st) => st.undesired);
   const today = useStore((st) => st.today);
 
-  const {
-    basePoints,
-    routineMultiplier,
-    habitMultiplier,
-    undesiredPenalty,
-    totalMultiplier,
-    totalScore,
-  } = calcTotalScore(tasks, routine, habits, undesired);
-
-  const multiplierParts: string[] = [];
-  if (routineMultiplier > 0) multiplierParts.push(`рутина +${routineMultiplier.toFixed(2)}`);
-  if (habitMultiplier > 0) multiplierParts.push(`привычки +${habitMultiplier.toFixed(2)}`);
-  if (undesiredPenalty > 0) multiplierParts.push(`штраф −${undesiredPenalty.toFixed(2)}`);
+  const { routineDone, routineTotal, habitsDone, habitsTotal } = useMemo(() => {
+    const visible = routine.filter(
+      (r) => !r.archivedAt && isVisibleToday(r, today) && r.skippedOnDate !== today,
+    );
+    const activeHabits = habits.filter((h) => !h.archivedAt);
+    return {
+      routineDone: visible.filter((r) => r.done).length,
+      routineTotal: visible.length,
+      habitsDone: activeHabits.filter((h) => h.doneToday).length,
+      habitsTotal: activeHabits.length,
+    };
+  }, [routine, habits, today]);
 
   return (
     <header className={s.header}>
       <p className={s.date}>{formatDate(today)}</p>
-      <div className={s.scoreWrap}>
-        <span className={s.scoreLabel}>Score</span>
-        <div className={s.score}>{totalScore}</div>
-      </div>
-      <div className={s.multiplierRow}>
-        <div className={s.multiplierBadge}>
-          ×{totalMultiplier.toFixed(2)}
-        </div>
-        {multiplierParts.length > 0 && (
-          <span className={s.multiplierDetail}>{multiplierParts.join(' · ')}</span>
+      <div className={s.counters}>
+        {routineTotal > 0 && (
+          <span className={s.counter}>
+            Рутины <strong>{routineDone}/{routineTotal}</strong>
+          </span>
+        )}
+        {habitsTotal > 0 && (
+          <span className={s.counter}>
+            Привычки <strong>{habitsDone}/{habitsTotal}</strong>
+          </span>
         )}
       </div>
-      {basePoints > 0 && (
-        <p className={s.basePoints}>
-          база: <span>{basePoints} BP</span>
-        </p>
-      )}
     </header>
   );
 }

@@ -1,27 +1,14 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useStore } from '../../store/useStore';
-import { ROUTINE_BONUSES } from '../../types';
 import { isVisibleToday } from '../../utils/routine';
+import { SwipeableRoutineRow } from './SwipeableRoutineRow';
 import s from './RoutineList.module.css';
-
-function getNextBonus(doneCount: number): number {
-  const idx = doneCount;
-  if (idx >= ROUTINE_BONUSES.length) return ROUTINE_BONUSES[ROUTINE_BONUSES.length - 1];
-  return ROUTINE_BONUSES[idx];
-}
 
 export function RoutineList() {
   const routine = useStore((st) => st.routine);
   const today = useStore((st) => st.today);
   const toggleRoutine = useStore((st) => st.toggleRoutine);
-
-  const doneCountTotal = useMemo(
-    () =>
-      routine.filter(
-        (r) => !r.archivedAt && isVisibleToday(r, today) && r.done && r.skippedOnDate !== today,
-      ).length,
-    [routine, today],
-  );
+  const skipRoutineToday = useStore((st) => st.skipRoutineToday);
 
   const visible = useMemo(
     () =>
@@ -100,8 +87,8 @@ export function RoutineList() {
       ) : (
         <ul className={s.list}>
           {visible.map((item) => {
-            const bonus = getNextBonus(doneCountTotal);
-            return (
+            const isOptional = item.kind === 'optional';
+            const rowContent = (
               <li
                 key={item.id}
                 ref={setItemRef(item.id)}
@@ -114,9 +101,24 @@ export function RoutineList() {
                   aria-label="Отметить выполненным"
                 />
                 <span className={s.label}>{item.label}</span>
-                <span className={s.bonus}>+{bonus.toFixed(2)}</span>
+                {isOptional && (
+                  <span className={s.kindBadge} title="Опциональная">○</span>
+                )}
               </li>
             );
+
+            if (isOptional) {
+              return (
+                <SwipeableRoutineRow
+                  key={item.id}
+                  onCancel={() => skipRoutineToday(item.id)}
+                >
+                  {rowContent}
+                </SwipeableRoutineRow>
+              );
+            }
+
+            return rowContent;
           })}
         </ul>
       )}

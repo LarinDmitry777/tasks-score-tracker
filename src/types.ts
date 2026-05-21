@@ -1,22 +1,4 @@
-export type TaskSize = 'S' | 'M' | 'L';
-
-export const TASK_POINTS: Record<TaskSize, number> = {
-  S: 10,
-  M: 30,
-  L: 100,
-};
-
-export const ROUTINE_BONUSES = [0.15, 0.10, 0.07, 0.05, 0.02];
-
-export const UNDESIRED_PENALTY_STEP = 0.05;
-export const UNDESIRED_PENALTY_CAP = 0.50;
-
-export interface TaskEntry {
-  id: string;
-  size: TaskSize;
-  timestamp: number;
-}
-
+export type RoutineKind = 'mandatory' | 'optional';
 export type RoutineScheduleMode = 'sinceLastDone' | 'fixedGrid';
 
 export interface RoutineItem {
@@ -25,6 +7,7 @@ export interface RoutineItem {
   done: boolean;
   intervalDays: number;
   mode: RoutineScheduleMode;
+  kind: RoutineKind;
   startDate: string; // YYYY-MM-DD
   dueDate: string; // YYYY-MM-DD — next scheduled appearance
   prevDueDate?: string; // for same-day undo of toggle
@@ -50,8 +33,8 @@ export interface HistoryHabit {
   id: string;
   label: string;
   streak: number;
-  bonus: number;
   skipsAllowed: number;
+  doneToday?: boolean;
 }
 
 export interface UndesiredTask {
@@ -69,7 +52,7 @@ export interface HistoryUndesired {
   id: string;
   label: string;
   failStreak: number;
-  penalty: number; // положительное число — величина штрафа
+  markedToday?: boolean;
 }
 
 export interface HistoryRoutine {
@@ -79,22 +62,19 @@ export interface HistoryRoutine {
   skipped: boolean;
   intervalDays: number;
   mode: RoutineScheduleMode;
+  kind: RoutineKind;
 }
 
 export interface DayRecord {
   date: string; // "YYYY-MM-DD"
-  tasks: TaskEntry[];
-  /** @deprecated сохраняется для бэкапов v<5; новые записи используют routine[] */
-  routineDoneCount: number;
+  routineCompleted: number; // done && не skipped
+  routineTotal: number; // активных минус skipped на этот день
   routine: HistoryRoutine[];
+  habitsDone: number;
+  habitsTotal: number;
   habits: HistoryHabit[];
+  negativeFails: number; // сколько негативных было markedToday
   undesired: HistoryUndesired[];
-  basePoints: number;
-  routineMultiplier: number;
-  habitMultiplier: number;
-  undesiredPenalty: number;
-  totalMultiplier: number;
-  totalScore: number;
 }
 
 export type TabId = 'today' | 'history' | 'settings';
