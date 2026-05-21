@@ -4,50 +4,44 @@ import { isVisibleToday } from '../../utils/routine';
 import { SwipeableRoutineRow } from './SwipeableRoutineRow';
 import s from './RoutineList.module.css';
 
+function statusOrder(done: boolean, skipped: boolean): number {
+  if (done) return 2;
+  if (skipped) return 1;
+  return 0;
+}
+
 export function RoutineList() {
   const routine = useStore((st) => st.routine);
   const today = useStore((st) => st.today);
   const toggleRoutine = useStore((st) => st.toggleRoutine);
   const skipRoutineToday = useStore((st) => st.skipRoutineToday);
+  const unskipRoutineToday = useStore((st) => st.unskipRoutineToday);
 
-  const visible = useMemo(
-    () =>
-      routine.filter(
-        (r) => !r.archivedAt && isVisibleToday(r, today) && !r.done && r.skippedOnDate !== today,
-      ),
-    [routine, today],
-  );
+  // Все активные рутины на сегодня, отсортированные: активные → отменённые → выполненные
+  // Внутри каждой группы — порядок из настроек (индекс в массиве routine)
+  const visible = useMemo(() => {
+    const items = routine
+      .map((r, idx) => ({ r, idx }))
+      .filter(({ r }) => !r.archivedAt && isVisibleToday(r, today));
+
+    return items
+      .sort((a, b) => {
+        const aStatus = statusOrder(a.r.done, a.r.skippedOnDate === today);
+        const bStatus = statusOrder(b.r.done, b.r.skippedOnDate === today);
+        if (aStatus !== bStatus) return aStatus - bStatus;
+        return a.idx - b.idx;
+      })
+      .map(({ r }) => r);
+  }, [routine, today]);
 
   const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map());
   const prevPositions = useRef<Map<string, number>>(new Map());
-  const exitingIds = useRef<Set<string>>(new Set());
 
-  const handleComplete = (id: string) => {
-    if (exitingIds.current.has(id)) return;
-    const el = itemRefs.current.get(id);
-    if (!el) {
-      toggleRoutine(id);
-      return;
-    }
-    exitingIds.current.add(id);
-    const height = el.offsetHeight;
-    const anim = el.animate(
-      [
-        { opacity: 1, height: `${height}px`, paddingTop: '14px', paddingBottom: '14px' },
-        { opacity: 0, height: '0px', paddingTop: '0px', paddingBottom: '0px' },
-      ],
-      { duration: 260, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' },
-    );
-    anim.onfinish = () => {
-      exitingIds.current.delete(id);
-      prevPositions.current.delete(id);
-      itemRefs.current.forEach((siblingEl, siblingId) => {
-        if (siblingId !== id) {
-          prevPositions.current.set(siblingId, siblingEl.getBoundingClientRect().top);
-        }
-      });
-      toggleRoutine(id);
-    };
+  // Снимаем позиции ДО рендера, чтобы потом анимировать FLIP
+  const snapshotPositions = () => {
+    itemRefs.current.forEach((el, id) => {
+      prevPositions.current.set(id, el.getBoundingClientRect().top);
+    });
   };
 
   useLayoutEffect(() => {
@@ -57,11 +51,8 @@ export function RoutineList() {
       if (prevTop !== undefined && prevTop !== currTop) {
         const dy = prevTop - currTop;
         el.animate(
-          [
-            { transform: `translateY(${dy}px)` },
-            { transform: 'translateY(0)' },
-          ],
-          { duration: 220, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
+          [{ transform: `translateY(${dy}px)` }, { transform: 'translateY(0)' }],
+          { duration: 260, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
         );
       }
       prevPositions.current.set(id, currTop);
@@ -76,6 +67,21 @@ export function RoutineList() {
     else itemRefs.current.delete(id);
   };
 
+  const handleToggle = (id: string) => {
+    snapshotPositions();
+    toggleRoutine(id);
+  };
+
+  const handleSkip = (id: string) => {
+    snapshotPositions();
+    skipRoutineToday(id);
+  };
+
+  const handleUnskip = (id: string) => {
+    snapshotPositions();
+    unskipRoutineToday(id);
+  };
+
   return (
     <section className={s.section}>
       <div className={s.sectionHeader}>
@@ -88,30 +94,53 @@ export function RoutineList() {
         <ul className={s.list}>
           {visible.map((item) => {
             const isOptional = item.kind === 'optional';
+            const isSkipped = item.skippedOnDate === today;
+
             const rowContent = (
               <li
                 key={item.id}
                 ref={setItemRef(item.id)}
-                className={`${s.item} ${item.intervalDays > 1 ? s.periodic : ''}`}
+                className={[
+                  s.item,
+                  item.intervalDays > 1 ? s.periodic : '',
+                  item.done ? s.done : '',
+                  isSkipped ? s.skipped : '',
+                ].filter(Boolean).join(' ')}
               >
                 <button
-                  className={s.checkbox}
-                  onClick={() => handleComplete(item.id)}
+                  className={`${s.checkbox} ${item.done ? s.checked : ''}`}
+                  onClick={() => !isSkipped && handleToggle(item.id)}
                   type="button"
-                  aria-label="Отметить выполненным"
-                />
+                  aria-label={item.done ? 'Снять отметку' : 'Отметить выполненным'}
+                  disabled={isSkipped}
+                >
+                  {item.done && <span className={s.checkmark}>✓</span>}
+                </button>
                 <span className={s.label}>{item.label}</span>
-                {isOptional && (
+                {isSkipped && (
+                  <button
+                    className={s.unskipBtn}
+                    onClick={() => handleUnskip(item.id)}
+                    type="button"
+                    aria-label="Вернуть"
+                  >
+                    ↩
+                  </button>
+                )}
+                {isOptional && !isSkipped && (
                   <span className={s.kindBadge} title="Опциональная">○</span>
+                )}
+                {isSkipped && (
+                  <span className={s.skippedMark}>⊘</span>
                 )}
               </li>
             );
 
-            if (isOptional) {
+            if (isOptional && !isSkipped && !item.done) {
               return (
                 <SwipeableRoutineRow
                   key={item.id}
-                  onCancel={() => skipRoutineToday(item.id)}
+                  onCancel={() => handleSkip(item.id)}
                 >
                   {rowContent}
                 </SwipeableRoutineRow>
