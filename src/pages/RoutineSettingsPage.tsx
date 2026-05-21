@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
-import type { RoutineItem, RoutineKind, RoutineScheduleMode } from '../types';
+import type { RoutineItem, RoutineKind, RoutineScheduleMode, RoutineTimeOfDay } from '../types';
 import s from './RoutineSettingsPage.module.css';
 
 interface Props {
@@ -12,6 +12,7 @@ interface DraftValues {
   intervalDays: string;
   mode: RoutineScheduleMode;
   kind: RoutineKind;
+  timeOfDay: RoutineTimeOfDay;
 }
 
 const DAY_NAMES = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
@@ -56,7 +57,7 @@ export function RoutineSettingsPage({ onBack }: Props) {
 
   const openAdd = () => {
     setEditTarget(null);
-    setDraft({ label: '', intervalDays: '1', mode: 'sinceLastDone', kind: 'mandatory' });
+    setDraft({ label: '', intervalDays: '1', mode: 'sinceLastDone', kind: 'mandatory', timeOfDay: 'day' });
     setEditorOpen(true);
   };
 
@@ -67,6 +68,7 @@ export function RoutineSettingsPage({ onBack }: Props) {
       intervalDays: String(item.intervalDays),
       mode: item.mode,
       kind: item.kind,
+      timeOfDay: item.timeOfDay,
     });
     setEditorOpen(true);
   };
@@ -81,9 +83,9 @@ export function RoutineSettingsPage({ onBack }: Props) {
     if (!label) return;
     const interval = Math.max(1, Math.floor(Number(draft.intervalDays) || 1));
     if (editTarget) {
-      editRoutine(editTarget.id, { label, intervalDays: interval, mode: draft.mode, kind: draft.kind });
+      editRoutine(editTarget.id, { label, intervalDays: interval, mode: draft.mode, kind: draft.kind, timeOfDay: draft.timeOfDay });
     } else {
-      addRoutine(label, interval, draft.mode, draft.kind);
+      addRoutine(label, interval, draft.mode, draft.kind, draft.timeOfDay);
     }
     closeEditor();
   };
@@ -119,6 +121,9 @@ export function RoutineSettingsPage({ onBack }: Props) {
                   <span className={`${s.kindBadge} ${item.kind === 'optional' ? s.optional : s.mandatory}`}>
                     {item.kind === 'optional' ? 'опц.' : 'обяз.'}
                   </span>
+                  {item.timeOfDay === 'evening' && (
+                    <span className={`${s.kindBadge} ${s.evening}`}>вечер</span>
+                  )}
                 </p>
                 <div className={s.badges}>
                   <span className={s.badge}>{intervalLabel(item.intervalDays)}</span>
@@ -266,6 +271,28 @@ export function RoutineSettingsPage({ onBack }: Props) {
                 >
                   <span className={s.modeTitle}>Опциональная</span>
                   <span className={s.modeDesc}>Можно отменить свайпом — не учитывается в статистике</span>
+                </button>
+              </div>
+            </div>
+
+            <div className={s.field}>
+              <span className={s.fieldLabel}>Время дня</span>
+              <div className={s.modeOptions}>
+                <button
+                  type="button"
+                  className={`${s.modeBtn} ${draft.timeOfDay === 'day' ? s.modeActive : ''}`}
+                  onClick={() => setDraft((d) => ({ ...d, timeOfDay: 'day' }))}
+                >
+                  <span className={s.modeTitle}>☀️ Дневная</span>
+                  <span className={s.modeDesc}>Обычная рутина — светлый фон</span>
+                </button>
+                <button
+                  type="button"
+                  className={`${s.modeBtn} ${draft.timeOfDay === 'evening' ? s.modeActive : ''}`}
+                  onClick={() => setDraft((d) => ({ ...d, timeOfDay: 'evening' }))}
+                >
+                  <span className={s.modeTitle}>🌙 Вечерняя</span>
+                  <span className={s.modeDesc}>Вечерние дела — тёмный фон</span>
                 </button>
               </div>
             </div>

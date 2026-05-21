@@ -1,5 +1,6 @@
 export type RoutineKind = 'mandatory' | 'optional';
 export type RoutineScheduleMode = 'sinceLastDone' | 'fixedGrid';
+export type RoutineTimeOfDay = 'day' | 'evening';
 
 export interface RoutineItem {
   id: string;
@@ -8,6 +9,7 @@ export interface RoutineItem {
   intervalDays: number;
   mode: RoutineScheduleMode;
   kind: RoutineKind;
+  timeOfDay: RoutineTimeOfDay;
   startDate: string; // YYYY-MM-DD
   dueDate: string; // YYYY-MM-DD — next scheduled appearance
   prevDueDate?: string; // for same-day undo of toggle

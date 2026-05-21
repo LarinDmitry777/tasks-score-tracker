@@ -1,4 +1,4 @@
-import type { RoutineItem, RoutineKind, RoutineScheduleMode } from '../types';
+import type { RoutineItem, RoutineKind, RoutineScheduleMode, RoutineTimeOfDay } from '../types';
 import { addDays, daysBetween } from './week';
 
 export { addDays };
@@ -28,6 +28,7 @@ export function createRoutine(
   mode: RoutineScheduleMode,
   today: string,
   kind: RoutineKind = 'mandatory',
+  timeOfDay: RoutineTimeOfDay = 'day',
 ): RoutineItem {
   const interval = Math.max(1, Math.floor(intervalDays));
   return {
@@ -37,6 +38,7 @@ export function createRoutine(
     intervalDays: interval,
     mode,
     kind,
+    timeOfDay,
     startDate: today,
     dueDate: today,
     createdAt: today,

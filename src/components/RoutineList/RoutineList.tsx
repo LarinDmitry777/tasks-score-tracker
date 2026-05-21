@@ -1,13 +1,78 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useStore } from '../../store/useStore';
+import type { RoutineItem } from '../../types';
 import { isVisibleToday } from '../../utils/routine';
 import { SwipeableRoutineRow } from './SwipeableRoutineRow';
 import s from './RoutineList.module.css';
 
-function statusOrder(done: boolean, skipped: boolean): number {
-  if (done) return 2;
-  if (skipped) return 1;
-  return 0;
+function sortByTimeAndOrder(items: { r: RoutineItem; idx: number }[]): RoutineItem[] {
+  return items
+    .sort((a, b) => {
+      const aTime = a.r.timeOfDay === 'evening' ? 1 : 0;
+      const bTime = b.r.timeOfDay === 'evening' ? 1 : 0;
+      if (aTime !== bTime) return aTime - bTime;
+      return a.idx - b.idx;
+    })
+    .map(({ r }) => r);
+}
+
+interface RoutineRowProps {
+  item: RoutineItem;
+  today: string;
+  setItemRef: (id: string) => (el: HTMLLIElement | null) => void;
+  onToggle: (id: string) => void;
+  onSkip: (id: string) => void;
+  onUnskip: (id: string) => void;
+}
+
+function RoutineRow({ item, today, setItemRef, onToggle, onSkip, onUnskip }: RoutineRowProps) {
+  const isSkipped = item.skippedOnDate === today;
+  const isOptional = item.kind === 'optional';
+
+  const li = (
+    <li
+      ref={setItemRef(item.id)}
+      className={[
+        s.item,
+        item.intervalDays > 1 ? s.periodic : '',
+        item.timeOfDay === 'evening' ? s.evening : '',
+        item.done ? s.done : '',
+        isSkipped ? s.skipped : '',
+      ].filter(Boolean).join(' ')}
+    >
+      <button
+        className={`${s.checkbox} ${item.done ? s.checked : ''}`}
+        onClick={() => !isSkipped && onToggle(item.id)}
+        type="button"
+        aria-label={item.done ? 'Снять отметку' : 'Отметить выполненным'}
+        disabled={isSkipped}
+      >
+        {item.done && <span className={s.checkmark}>✓</span>}
+      </button>
+      <span className={s.label}>{item.label}</span>
+      {isSkipped && (
+        <button
+          className={s.unskipBtn}
+          onClick={() => onUnskip(item.id)}
+          type="button"
+          aria-label="Вернуть"
+        >
+          ↩
+        </button>
+      )}
+      {isSkipped && <span className={s.skippedMark}>⊘</span>}
+    </li>
+  );
+
+  if (isOptional && !isSkipped && !item.done) {
+    return (
+      <SwipeableRoutineRow key={item.id} onCancel={() => onSkip(item.id)}>
+        {li}
+      </SwipeableRoutineRow>
+    );
+  }
+
+  return li;
 }
 
 export function RoutineList() {
@@ -17,27 +82,23 @@ export function RoutineList() {
   const skipRoutineToday = useStore((st) => st.skipRoutineToday);
   const unskipRoutineToday = useStore((st) => st.unskipRoutineToday);
 
-  // Все активные рутины на сегодня, отсортированные: активные → отменённые → выполненные
-  // Внутри каждой группы — порядок из настроек (индекс в массиве routine)
-  const visible = useMemo(() => {
-    const items = routine
+  const { mandatory, optional, completed } = useMemo(() => {
+    const indexed = routine
       .map((r, idx) => ({ r, idx }))
       .filter(({ r }) => !r.archivedAt && isVisibleToday(r, today));
 
-    return items
-      .sort((a, b) => {
-        const aStatus = statusOrder(a.r.done, a.r.skippedOnDate === today);
-        const bStatus = statusOrder(b.r.done, b.r.skippedOnDate === today);
-        if (aStatus !== bStatus) return aStatus - bStatus;
-        return a.idx - b.idx;
-      })
-      .map(({ r }) => r);
+    const isActive = (r: RoutineItem) => !r.done && r.skippedOnDate !== today;
+
+    return {
+      mandatory: sortByTimeAndOrder(indexed.filter(({ r }) => r.kind === 'mandatory' && isActive(r))),
+      optional: sortByTimeAndOrder(indexed.filter(({ r }) => r.kind === 'optional' && isActive(r))),
+      completed: sortByTimeAndOrder(indexed.filter(({ r }) => r.done || r.skippedOnDate === today)),
+    };
   }, [routine, today]);
 
   const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map());
   const prevPositions = useRef<Map<string, number>>(new Map());
 
-  // Снимаем позиции ДО рендера, чтобы потом анимировать FLIP
   const snapshotPositions = () => {
     itemRefs.current.forEach((el, id) => {
       prevPositions.current.set(id, el.getBoundingClientRect().top);
@@ -67,89 +128,53 @@ export function RoutineList() {
     else itemRefs.current.delete(id);
   };
 
-  const handleToggle = (id: string) => {
-    snapshotPositions();
-    toggleRoutine(id);
-  };
+  const handleToggle = (id: string) => { snapshotPositions(); toggleRoutine(id); };
+  const handleSkip = (id: string) => { snapshotPositions(); skipRoutineToday(id); };
+  const handleUnskip = (id: string) => { snapshotPositions(); unskipRoutineToday(id); };
 
-  const handleSkip = (id: string) => {
-    snapshotPositions();
-    skipRoutineToday(id);
-  };
+  const total = mandatory.length + optional.length + completed.length;
 
-  const handleUnskip = (id: string) => {
-    snapshotPositions();
-    unskipRoutineToday(id);
-  };
+  const rowProps = { today, setItemRef, onToggle: handleToggle, onSkip: handleSkip, onUnskip: handleUnskip };
 
   return (
     <section className={s.section}>
-      <div className={s.sectionHeader}>
-        <p className={s.sectionTitle}>Рутина</p>
-      </div>
-
-      {visible.length === 0 ? (
+      {total === 0 ? (
         <p className={s.emptyHint}>На сегодня рутины нет</p>
       ) : (
-        <ul className={s.list}>
-          {visible.map((item) => {
-            const isOptional = item.kind === 'optional';
-            const isSkipped = item.skippedOnDate === today;
+        <div className={s.groups}>
+          {mandatory.length > 0 && (
+            <div className={s.group}>
+              <p className={s.groupLabel}>Обязательные</p>
+              <ul className={s.list}>
+                {mandatory.map((item) => (
+                  <RoutineRow key={item.id} item={item} {...rowProps} />
+                ))}
+              </ul>
+            </div>
+          )}
 
-            const rowContent = (
-              <li
-                key={item.id}
-                ref={setItemRef(item.id)}
-                className={[
-                  s.item,
-                  item.intervalDays > 1 ? s.periodic : '',
-                  item.done ? s.done : '',
-                  isSkipped ? s.skipped : '',
-                ].filter(Boolean).join(' ')}
-              >
-                <button
-                  className={`${s.checkbox} ${item.done ? s.checked : ''}`}
-                  onClick={() => !isSkipped && handleToggle(item.id)}
-                  type="button"
-                  aria-label={item.done ? 'Снять отметку' : 'Отметить выполненным'}
-                  disabled={isSkipped}
-                >
-                  {item.done && <span className={s.checkmark}>✓</span>}
-                </button>
-                <span className={s.label}>{item.label}</span>
-                {isSkipped && (
-                  <button
-                    className={s.unskipBtn}
-                    onClick={() => handleUnskip(item.id)}
-                    type="button"
-                    aria-label="Вернуть"
-                  >
-                    ↩
-                  </button>
-                )}
-                {isOptional && !isSkipped && (
-                  <span className={s.kindBadge} title="Опциональная">○</span>
-                )}
-                {isSkipped && (
-                  <span className={s.skippedMark}>⊘</span>
-                )}
-              </li>
-            );
+          {optional.length > 0 && (
+            <div className={s.group}>
+              <p className={s.groupLabel}>Опциональные</p>
+              <ul className={s.list}>
+                {optional.map((item) => (
+                  <RoutineRow key={item.id} item={item} {...rowProps} />
+                ))}
+              </ul>
+            </div>
+          )}
 
-            if (isOptional && !isSkipped && !item.done) {
-              return (
-                <SwipeableRoutineRow
-                  key={item.id}
-                  onCancel={() => handleSkip(item.id)}
-                >
-                  {rowContent}
-                </SwipeableRoutineRow>
-              );
-            }
-
-            return rowContent;
-          })}
-        </ul>
+          {completed.length > 0 && (
+            <div className={s.group}>
+              <p className={s.groupLabel}>Выполненные</p>
+              <ul className={s.list}>
+                {completed.map((item) => (
+                  <RoutineRow key={item.id} item={item} {...rowProps} />
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       )}
     </section>
   );

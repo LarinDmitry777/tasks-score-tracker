@@ -108,6 +108,11 @@
   background: rgba(163, 230, 53, 0.12);
 }
 
+.kindBadge.evening {
+  color: #818cf8;
+  background: rgba(129, 140, 248, 0.15);
+}
+
 .badges {
   display: flex;
   flex-wrap: wrap;

@@ -6,6 +6,7 @@ import type {
   RoutineItem,
   RoutineKind,
   RoutineScheduleMode,
+  RoutineTimeOfDay,
   UndesiredTask,
 } from '../types';
 import { getTodayDate } from '../utils/week';
@@ -25,10 +26,10 @@ interface StoreState {
 
   // Routine actions
   toggleRoutine: (id: string) => void;
-  addRoutine: (label: string, intervalDays: number, mode: RoutineScheduleMode, kind: RoutineKind) => void;
+  addRoutine: (label: string, intervalDays: number, mode: RoutineScheduleMode, kind: RoutineKind, timeOfDay: RoutineTimeOfDay) => void;
   editRoutine: (
     id: string,
-    patch: { label?: string; intervalDays?: number; mode?: RoutineScheduleMode; kind?: RoutineKind },
+    patch: { label?: string; intervalDays?: number; mode?: RoutineScheduleMode; kind?: RoutineKind; timeOfDay?: RoutineTimeOfDay },
   ) => void;
   deleteRoutine: (id: string) => void;
   skipRoutineToday: (id: string) => void;
@@ -90,9 +91,9 @@ export const useStore = create<StoreState>()(
         });
       },
 
-      addRoutine: (label, intervalDays, mode, kind) => {
+      addRoutine: (label, intervalDays, mode, kind, timeOfDay) => {
         const today = getTodayDate();
-        const item = createRoutine(uid(), label, intervalDays, mode, today, kind);
+        const item = createRoutine(uid(), label, intervalDays, mode, today, kind, timeOfDay);
         set((s) => ({ routine: [...s.routine, item] }));
       },
 
@@ -107,6 +108,7 @@ export const useStore = create<StoreState>()(
             }
             if (patch.mode !== undefined) next.mode = patch.mode;
             if (patch.kind !== undefined) next.kind = patch.kind;
+            if (patch.timeOfDay !== undefined) next.timeOfDay = patch.timeOfDay;
             return next;
           }),
         }));
@@ -400,7 +402,7 @@ export const useStore = create<StoreState>()(
         const { today, routine, habits, undesired, history } = get();
         const payload = JSON.stringify(
           {
-            version: 6,
+            version: 7,
             exportedAt: new Date().toISOString(),
             today,
             routine,
@@ -424,7 +426,7 @@ export const useStore = create<StoreState>()(
         try {
           const data = JSON.parse(json);
           if (!data || typeof data !== 'object') throw new Error('Неверный формат файла');
-          if (![5, 6].includes(data.version)) {
+          if (![5, 6, 7].includes(data.version)) {
             throw new Error('Неподдерживаемая версия backup');
           }
 
@@ -443,6 +445,7 @@ export const useStore = create<StoreState>()(
             intervalDays: r.intervalDays ?? 1,
             mode: r.mode ?? ('sinceLastDone' as RoutineScheduleMode),
             kind: r.kind ?? ('mandatory' as RoutineKind),
+            timeOfDay: r.timeOfDay ?? ('day' as RoutineTimeOfDay),
             startDate: r.startDate ?? today,
             dueDate: r.dueDate ?? today,
             createdAt: r.createdAt ?? today,
@@ -469,8 +472,8 @@ export const useStore = create<StoreState>()(
             createdAt: u.createdAt ?? today,
           }));
 
-          // Для v5: история очищается (несовместимая структура)
-          const migratedHistory: DayRecord[] = data.version === 6 ? history : [];
+          // Для v5/v6: история очищается (несовместимая структура)
+          const migratedHistory: DayRecord[] = data.version === 7 ? history : [];
 
           set({
             today,
@@ -487,7 +490,7 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'scoreflow-store',
-      version: 6,
+      version: 7,
       migrate: (persisted: unknown, version: number) => {
         if (!persisted || typeof persisted !== 'object') return persisted;
         const state = persisted as {
@@ -515,6 +518,7 @@ export const useStore = create<StoreState>()(
                 intervalDays: r.intervalDays ?? 1,
                 mode: r.mode ?? ('sinceLastDone' as RoutineScheduleMode),
                 kind: r.kind ?? ('mandatory' as RoutineKind),
+                timeOfDay: r.timeOfDay ?? ('day' as RoutineTimeOfDay),
                 startDate: r.startDate ?? today,
                 dueDate: r.dueDate ?? today,
                 createdAt: r.createdAt ?? today,
@@ -562,6 +566,17 @@ export const useStore = create<StoreState>()(
               } satisfies UndesiredTask;
             });
           }
+        }
+
+        if (version < 7 && Array.isArray(state.routine)) {
+          state.routine = state.routine.map((raw) => {
+            const r = raw as Partial<RoutineItem> & { id: string; label: string; done?: boolean };
+            return {
+              ...r,
+              done: r.done ?? false,
+              timeOfDay: r.timeOfDay ?? ('day' as RoutineTimeOfDay),
+            } satisfies RoutineItem;
+          });
         }
 
         return state;
