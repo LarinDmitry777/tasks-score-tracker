@@ -137,6 +137,13 @@
   flex-shrink: 0;
 }
 
+.cancelledMark {
+  font-size: 14px;
+  color: #ef4444;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
 .unskipBtn {
   width: 32px;
   height: 32px;

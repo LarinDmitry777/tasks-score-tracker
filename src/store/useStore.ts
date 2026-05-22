@@ -126,10 +126,9 @@ export const useStore = create<StoreState>()(
       },
 
       skipRoutineToday: (id) => {
-        const today = getTodayDate();
         set((s) => ({
           routine: s.routine.map((r) =>
-            r.id === id ? { ...r, skippedOnDate: today } : r,
+            r.id === id ? { ...r, skippedOnDate: s.today } : r,
           ),
         }));
       },

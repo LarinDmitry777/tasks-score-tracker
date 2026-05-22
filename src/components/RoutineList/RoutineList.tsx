@@ -60,11 +60,12 @@ function RoutineRow({ item, today, setItemRef, onToggle, onSkip, onUnskip }: Rou
           ↩
         </button>
       )}
-      {isSkipped && <span className={s.skippedMark}>⊘</span>}
+      {isSkipped && !isOptional && <span className={s.cancelledMark}>✕</span>}
+      {isSkipped && isOptional && <span className={s.skippedMark}>⊘</span>}
     </li>
   );
 
-  if (isOptional && !isSkipped && !item.done) {
+  if (!isSkipped && !item.done) {
     return (
       <SwipeableRoutineRow key={item.id} onCancel={() => onSkip(item.id)}>
         {li}
