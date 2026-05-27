@@ -66,8 +66,8 @@ export const useStore = create<StoreState>()(
       history: [],
 
       toggleRoutine: (id) => {
-        const today = getTodayDate();
         set((s) => {
+          const today = s.today;
           const target = s.routine.find((r) => r.id === id);
           if (!target) return s;
           let updated: RoutineItem;
