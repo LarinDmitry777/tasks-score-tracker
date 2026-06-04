@@ -279,24 +279,11 @@ export const useStore = create<StoreState>()(
         const currentDate = getTodayDate();
         if (today >= currentDate) return;
 
-        const activeRoutine = routine.filter((r) => !r.archivedAt);
         const activeHabits = habits.filter((h) => !h.archivedAt);
         const activeUndesired = undesired.filter((u) => !u.archivedAt);
 
-        const visibleRoutines = activeRoutine.filter((r) => r.skippedOnDate !== today);
         const record: DayRecord = {
           date: today,
-          routineTotal: visibleRoutines.length,
-          routineCompleted: visibleRoutines.filter((r) => r.done).length,
-          routine: visibleRoutines.map((r) => ({
-            id: r.id,
-            label: r.label,
-            done: r.done,
-            skipped: false,
-            intervalDays: r.intervalDays,
-            mode: r.mode,
-            kind: r.kind,
-          })),
           habitsDone: activeHabits.filter((h) => h.doneToday).length,
           habitsTotal: activeHabits.length,
           habits: activeHabits.map((h) => ({
@@ -401,7 +388,7 @@ export const useStore = create<StoreState>()(
         const { today, routine, habits, undesired, history } = get();
         const payload = JSON.stringify(
           {
-            version: 7,
+            version: 8,
             exportedAt: new Date().toISOString(),
             today,
             routine,
@@ -425,7 +412,7 @@ export const useStore = create<StoreState>()(
         try {
           const data = JSON.parse(json);
           if (!data || typeof data !== 'object') throw new Error('Неверный формат файла');
-          if (![5, 6, 7].includes(data.version)) {
+          if (![5, 6, 7, 8].includes(data.version)) {
             throw new Error('Неподдерживаемая версия backup');
           }
 
@@ -472,7 +459,12 @@ export const useStore = create<StoreState>()(
           }));
 
           // Для v5/v6: история очищается (несовместимая структура)
-          const migratedHistory: DayRecord[] = data.version === 7 ? history : [];
+          const rawHistory: DayRecord[] = data.version >= 7 ? history : [];
+          const migratedHistory: DayRecord[] = rawHistory.map((rec) => {
+            const { routine: _r, routineCompleted: _rc, routineTotal: _rt, ...rest } = rec as DayRecord & Record<string, unknown>;
+            void _r; void _rc; void _rt;
+            return rest as DayRecord;
+          });
 
           set({
             today,
@@ -489,7 +481,7 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'scoreflow-store',
-      version: 7,
+      version: 8,
       migrate: (persisted: unknown, version: number) => {
         if (!persisted || typeof persisted !== 'object') return persisted;
         const state = persisted as {
@@ -585,6 +577,15 @@ export const useStore = create<StoreState>()(
               skippedOnDate: r.skippedOnDate,
               archivedAt: r.archivedAt,
             } satisfies RoutineItem;
+          });
+        }
+
+        if (version < 8 && Array.isArray(state.history)) {
+          state.history = state.history.map((raw) => {
+            const rec = raw as Record<string, unknown>;
+            const { routine: _r, routineCompleted: _rc, routineTotal: _rt, ...rest } = rec;
+            void _r; void _rc; void _rt;
+            return rest;
           });
         }
 

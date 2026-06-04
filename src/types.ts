@@ -57,25 +57,12 @@ export interface HistoryUndesired {
   markedToday?: boolean;
 }
 
-export interface HistoryRoutine {
-  id: string;
-  label: string;
-  done: boolean;
-  skipped: boolean;
-  intervalDays: number;
-  mode: RoutineScheduleMode;
-  kind: RoutineKind;
-}
-
 export interface DayRecord {
   date: string; // "YYYY-MM-DD"
-  routineCompleted: number; // done && не skipped
-  routineTotal: number; // активных минус skipped на этот день
-  routine: HistoryRoutine[];
   habitsDone: number;
   habitsTotal: number;
   habits: HistoryHabit[];
-  negativeFails: number; // сколько негативных было markedToday
+  negativeFails: number;
   undesired: HistoryUndesired[];
 }
 

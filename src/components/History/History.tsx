@@ -23,9 +23,6 @@ function HistoryCard({ record }: { record: DayRecord }) {
         <span className={s.cardDate}>{formatDate(record.date)}</span>
         <div className={s.cardCounters}>
           <span className={s.counterChip}>
-            Рутины: {record.routineCompleted}/{record.routineTotal}
-          </span>
-          <span className={s.counterChip}>
             Привычки: {record.habitsDone}/{record.habitsTotal}
           </span>
           {record.negativeFails > 0 && (
@@ -39,24 +36,6 @@ function HistoryCard({ record }: { record: DayRecord }) {
 
       {open && (
         <div className={s.details}>
-          {/* Routines */}
-          {record.routine.length > 0 && (
-            <div className={s.detailSection}>
-              <span className={s.detailLabel}>Рутины</span>
-              {record.routine.map((r) => (
-                <div key={r.id} className={s.habitRow}>
-                  <span className={s.habitStatus}>
-                    {r.done ? '✓' : r.skipped ? '⊘' : '·'}
-                  </span>
-                  <span className={s.habitName}>{r.label}</span>
-                  {r.kind === 'optional' && (
-                    <span className={s.kindMark}>○</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Habits */}
           {record.habits.length > 0 && (
             <div className={s.detailSection}>
