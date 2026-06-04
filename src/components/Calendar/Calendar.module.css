@@ -1,0 +1,65 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: 0 16px;
+}
+
+.weekdayHeader {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 6px 0 4px;
+}
+
+.cell {
+  position: relative;
+  min-height: 44px;
+  border-radius: 10px;
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 2px;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cellEmpty {
+  min-height: 44px;
+}
+
+.cellToday {
+  border: 1.5px solid var(--accent);
+}
+
+.dayNum {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.dotDone {
+  background: #22c55e;
+}
+
+.dotFail {
+  background: #ef4444;
+}
+
+.dotEmpty {
+  background: var(--border);
+}

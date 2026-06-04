@@ -66,4 +66,4 @@ export interface DayRecord {
   undesired: HistoryUndesired[];
 }
 
-export type TabId = 'today' | 'history' | 'settings';
+export type TabId = 'today' | 'calendar' | 'settings';

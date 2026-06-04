@@ -9,7 +9,7 @@ interface Tab {
 
 const TABS: Tab[] = [
   { id: 'today', icon: '⚡', label: 'Сегодня' },
-  { id: 'history', icon: '📊', label: 'История' },
+  { id: 'calendar', icon: '📅', label: 'Календарь' },
   { id: 'settings', icon: '⚙️', label: 'Настройки' },
 ];
 

@@ -17,12 +17,18 @@ function uid(): string {
   return Math.random().toString(36).slice(2, 9);
 }
 
+export type CalendarTarget = { kind: 'habit' | 'undesired'; id: string } | null;
+
 interface StoreState {
   today: string;
   routine: RoutineItem[];
   habits: Habit[];
   undesired: UndesiredTask[];
   history: DayRecord[];
+  calendarTarget: CalendarTarget;
+
+  // Calendar actions
+  setCalendarTarget: (target: CalendarTarget) => void;
 
   // Routine actions
   toggleRoutine: (id: string) => void;
@@ -64,6 +70,9 @@ export const useStore = create<StoreState>()(
       habits: [],
       undesired: [],
       history: [],
+      calendarTarget: null,
+
+      setCalendarTarget: (target) => set({ calendarTarget: target }),
 
       toggleRoutine: (id) => {
         set((s) => {
@@ -213,6 +222,7 @@ export const useStore = create<StoreState>()(
           ),
         }));
       },
+
 
       toggleUndesired: (id) => {
         const today = getTodayDate();
@@ -385,16 +395,17 @@ export const useStore = create<StoreState>()(
       },
 
       exportState: () => {
-        const { today, routine, habits, undesired, history } = get();
+        const { today, routine, habits, undesired, history, calendarTarget } = get();
         const payload = JSON.stringify(
           {
-            version: 8,
+            version: 9,
             exportedAt: new Date().toISOString(),
             today,
             routine,
             habits,
             undesired,
             history,
+            calendarTarget,
           },
           null,
           2,
@@ -412,7 +423,7 @@ export const useStore = create<StoreState>()(
         try {
           const data = JSON.parse(json);
           if (!data || typeof data !== 'object') throw new Error('Неверный формат файла');
-          if (![5, 6, 7, 8].includes(data.version)) {
+          if (![5, 6, 7, 8, 9].includes(data.version)) {
             throw new Error('Неподдерживаемая версия backup');
           }
 
@@ -466,12 +477,22 @@ export const useStore = create<StoreState>()(
             return rest as DayRecord;
           });
 
+          const rawTarget = data.calendarTarget;
+          const migratedCalendarTarget: CalendarTarget =
+            rawTarget &&
+            typeof rawTarget === 'object' &&
+            (rawTarget.kind === 'habit' || rawTarget.kind === 'undesired') &&
+            typeof rawTarget.id === 'string'
+              ? { kind: rawTarget.kind, id: rawTarget.id }
+              : null;
+
           set({
             today,
             routine: migratedRoutine,
             habits: migratedHabits,
             undesired: migratedUndesired,
             history: migratedHistory,
+            calendarTarget: migratedCalendarTarget,
           });
           return { ok: true };
         } catch (e) {
@@ -481,7 +502,7 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'scoreflow-store',
-      version: 8,
+      version: 9,
       migrate: (persisted: unknown, version: number) => {
         if (!persisted || typeof persisted !== 'object') return persisted;
         const state = persisted as {
@@ -491,6 +512,7 @@ export const useStore = create<StoreState>()(
           habits?: unknown[];
           undesired?: unknown[];
           history?: unknown[];
+          calendarTarget?: unknown;
         };
         const today = state.today ?? getTodayDate();
 
@@ -587,6 +609,17 @@ export const useStore = create<StoreState>()(
             void _r; void _rc; void _rt;
             return rest;
           });
+        }
+
+        if (version < 9) {
+          const t = state.calendarTarget;
+          const valid =
+            t &&
+            typeof t === 'object' &&
+            ((t as { kind?: unknown }).kind === 'habit' ||
+              (t as { kind?: unknown }).kind === 'undesired') &&
+            typeof (t as { id?: unknown }).id === 'string';
+          state.calendarTarget = valid ? t : null;
         }
 
         return state;
