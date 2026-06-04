@@ -38,6 +38,15 @@
   border: 1.5px solid var(--accent);
 }
 
+.cellTappable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cellTappable:active {
+  opacity: 0.7;
+}
+
 .dayNum {
   font-size: 13px;
   font-weight: 600;

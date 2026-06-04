@@ -49,7 +49,7 @@ interface StoreState {
   deleteHabit: (id: string) => void;
 
   // Undesired task actions
-  toggleUndesired: (id: string) => void;
+  toggleUndesired: (id: string, note?: string) => void;
   addUndesired: (label: string) => void;
   editUndesired: (id: string, patch: { label?: string }) => void;
   deleteUndesired: (id: string) => void;
@@ -224,7 +224,7 @@ export const useStore = create<StoreState>()(
       },
 
 
-      toggleUndesired: (id) => {
+      toggleUndesired: (id, note) => {
         const today = getTodayDate();
         set((s) => ({
           undesired: s.undesired.map((u) => {
@@ -233,6 +233,7 @@ export const useStore = create<StoreState>()(
               return {
                 ...u,
                 markedToday: false,
+                todayNote: undefined,
                 failStreak: Math.max(0, u.failStreak - 1),
                 lastFailDate: null,
               };
@@ -240,6 +241,7 @@ export const useStore = create<StoreState>()(
             return {
               ...u,
               markedToday: true,
+              todayNote: note || undefined,
               failStreak: u.failStreak + 1,
               cleanStreak: 0,
               lastFailDate: today,
@@ -309,6 +311,7 @@ export const useStore = create<StoreState>()(
             label: u.label,
             failStreak: u.failStreak,
             markedToday: u.markedToday,
+            note: u.todayNote,
           })),
         };
 
@@ -398,7 +401,7 @@ export const useStore = create<StoreState>()(
         const { today, routine, habits, undesired, history, calendarTarget } = get();
         const payload = JSON.stringify(
           {
-            version: 9,
+            version: 10,
             exportedAt: new Date().toISOString(),
             today,
             routine,
@@ -423,7 +426,7 @@ export const useStore = create<StoreState>()(
         try {
           const data = JSON.parse(json);
           if (!data || typeof data !== 'object') throw new Error('Неверный формат файла');
-          if (![5, 6, 7, 8, 9].includes(data.version)) {
+          if (![5, 6, 7, 8, 9, 10].includes(data.version)) {
             throw new Error('Неподдерживаемая версия backup');
           }
 
@@ -502,7 +505,7 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'scoreflow-store',
-      version: 9,
+      version: 10,
       migrate: (persisted: unknown, version: number) => {
         if (!persisted || typeof persisted !== 'object') return persisted;
         const state = persisted as {
@@ -621,6 +624,8 @@ export const useStore = create<StoreState>()(
             typeof (t as { id?: unknown }).id === 'string';
           state.calendarTarget = valid ? t : null;
         }
+
+        // v10: todayNote added to UndesiredTask — optional field, no explicit migration needed.
 
         return state;
       },

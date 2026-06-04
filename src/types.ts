@@ -46,6 +46,7 @@ export interface UndesiredTask {
   cleanStreak: number; // дней подряд без срыва
   lastFailDate: string | null;
   markedToday: boolean;
+  todayNote?: string;
   createdAt: string;
   archivedAt?: string;
 }
@@ -55,6 +56,7 @@ export interface HistoryUndesired {
   label: string;
   failStreak: number;
   markedToday?: boolean;
+  note?: string;
 }
 
 export interface DayRecord {

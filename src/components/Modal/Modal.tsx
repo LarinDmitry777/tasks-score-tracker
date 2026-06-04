@@ -6,11 +6,13 @@ interface ModalProps {
   title: string;
   placeholder?: string;
   initialValue?: string;
+  saveLabel?: string;
+  allowEmpty?: boolean;
   onSave: (value: string) => void;
   onClose: () => void;
 }
 
-export function Modal({ open, title, placeholder, initialValue, onSave, onClose }: ModalProps) {
+export function Modal({ open, title, placeholder, initialValue, saveLabel, allowEmpty, onSave, onClose }: ModalProps) {
   const [value, setValue] = useState(initialValue ?? '');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -25,7 +27,7 @@ export function Modal({ open, title, placeholder, initialValue, onSave, onClose 
 
   const handleSave = () => {
     const trimmed = value.trim();
-    if (!trimmed) return;
+    if (!trimmed && !allowEmpty) return;
     onSave(trimmed);
     setValue('');
   };
@@ -52,10 +54,10 @@ export function Modal({ open, title, placeholder, initialValue, onSave, onClose 
         <button
           className={s.saveBtn}
           onClick={handleSave}
-          disabled={!value.trim()}
+          disabled={!allowEmpty && !value.trim()}
           type="button"
         >
-          Сохранить
+          {saveLabel ?? 'Сохранить'}
         </button>
       </div>
     </div>

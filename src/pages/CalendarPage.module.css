@@ -150,3 +150,99 @@
 .legendEmpty {
   background: var(--border);
 }
+
+/* Note popup bottom sheet */
+
+.noteOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeInNote 0.2s ease;
+}
+
+@keyframes fadeInNote {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.noteSheet {
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 480px;
+  padding: 16px 20px calc(24px + env(safe-area-inset-bottom));
+  animation: slideUpNote 0.25s ease;
+}
+
+@keyframes slideUpNote {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.noteHandle {
+  width: 36px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.noteDate {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.noteTitle {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ef4444;
+  margin-bottom: 16px;
+}
+
+.noteText {
+  font-size: 15px;
+  color: var(--text-primary);
+  line-height: 1.55;
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 0 0 16px;
+}
+
+.noteEmpty {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0 0 16px;
+  padding: 14px 0;
+  text-align: center;
+}
+
+.noteDismiss {
+  width: 100%;
+  min-height: 48px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s;
+}
+
+.noteDismiss:active {
+  transform: scale(0.98);
+}
