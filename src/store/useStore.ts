@@ -17,7 +17,12 @@ function uid(): string {
   return Math.random().toString(36).slice(2, 9);
 }
 
-export type CalendarTarget = { kind: 'habit' | 'undesired'; id: string } | null;
+export type CalendarTarget =
+  | { kind: 'habit'; id: string }
+  | { kind: 'undesired'; id: string }
+  | { kind: 'all-habits' }
+  | { kind: 'all-undesired' }
+  | null;
 
 interface StoreState {
   today: string;
@@ -50,6 +55,7 @@ interface StoreState {
 
   // Undesired task actions
   toggleUndesired: (id: string, note?: string) => void;
+  toggleHistoryFail: (date: string, undesiredId: string, note?: string) => void;
   addUndesired: (label: string) => void;
   editUndesired: (id: string, patch: { label?: string }) => void;
   deleteUndesired: (id: string) => void;
@@ -248,6 +254,53 @@ export const useStore = create<StoreState>()(
             };
           }),
         }));
+      },
+
+      toggleHistoryFail: (date, undesiredId, note) => {
+        const { today } = get();
+        if (date === today) {
+          get().toggleUndesired(undesiredId, note);
+          return;
+        }
+        const item = get().undesired.find((u) => u.id === undesiredId);
+        if (!item) return;
+        set((s) => {
+          const recExists = s.history.some((r) => r.date === date);
+          if (!recExists) {
+            const newRec: DayRecord = {
+              date,
+              habitsDone: 0,
+              habitsTotal: 0,
+              habits: [],
+              negativeFails: 1,
+              undesired: [{ id: undesiredId, label: item.label, failStreak: 0, markedToday: true, note }],
+            };
+            return { history: [...s.history, newRec].sort((a, b) => b.date.localeCompare(a.date)) };
+          }
+          return {
+            history: s.history.map((r) => {
+              if (r.date !== date) return r;
+              const existingU = r.undesired.find((u) => u.id === undesiredId);
+              if (existingU) {
+                const wasFail = existingU.markedToday ?? false;
+                return {
+                  ...r,
+                  negativeFails: wasFail ? Math.max(0, r.negativeFails - 1) : r.negativeFails + 1,
+                  undesired: r.undesired.map((u) =>
+                    u.id !== undesiredId
+                      ? u
+                      : { ...u, markedToday: !wasFail, note: !wasFail ? note : undefined },
+                  ),
+                };
+              }
+              return {
+                ...r,
+                negativeFails: r.negativeFails + 1,
+                undesired: [...r.undesired, { id: undesiredId, label: item.label, failStreak: 0, markedToday: true, note }],
+              };
+            }),
+          };
+        });
       },
 
       addUndesired: (label) => {
@@ -481,13 +534,15 @@ export const useStore = create<StoreState>()(
           });
 
           const rawTarget = data.calendarTarget;
-          const migratedCalendarTarget: CalendarTarget =
-            rawTarget &&
-            typeof rawTarget === 'object' &&
-            (rawTarget.kind === 'habit' || rawTarget.kind === 'undesired') &&
-            typeof rawTarget.id === 'string'
-              ? { kind: rawTarget.kind, id: rawTarget.id }
-              : null;
+          let migratedCalendarTarget: CalendarTarget = null;
+          if (rawTarget && typeof rawTarget === 'object') {
+            const t = rawTarget as Record<string, unknown>;
+            if (t.kind === 'all-habits') migratedCalendarTarget = { kind: 'all-habits' };
+            else if (t.kind === 'all-undesired') migratedCalendarTarget = { kind: 'all-undesired' };
+            else if ((t.kind === 'habit' || t.kind === 'undesired') && typeof t.id === 'string') {
+              migratedCalendarTarget = { kind: t.kind, id: t.id };
+            }
+          }
 
           set({
             today,
@@ -616,13 +671,21 @@ export const useStore = create<StoreState>()(
 
         if (version < 9) {
           const t = state.calendarTarget;
-          const valid =
-            t &&
-            typeof t === 'object' &&
-            ((t as { kind?: unknown }).kind === 'habit' ||
-              (t as { kind?: unknown }).kind === 'undesired') &&
-            typeof (t as { id?: unknown }).id === 'string';
-          state.calendarTarget = valid ? t : null;
+          if (t && typeof t === 'object') {
+            const k = (t as { kind?: unknown }).kind;
+            if (k === 'all-habits' || k === 'all-undesired') {
+              // valid as-is
+            } else if (
+              (k === 'habit' || k === 'undesired') &&
+              typeof (t as { id?: unknown }).id === 'string'
+            ) {
+              // valid as-is
+            } else {
+              state.calendarTarget = null;
+            }
+          } else {
+            state.calendarTarget = null;
+          }
         }
 
         // v10: todayNote added to UndesiredTask — optional field, no explicit migration needed.

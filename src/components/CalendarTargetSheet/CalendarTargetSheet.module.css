@@ -109,6 +109,10 @@
   border-color: var(--accent);
 }
 
+.rowAll {
+  font-weight: 700;
+}
+
 .rowLabel {
   flex: 1;
   overflow: hidden;

@@ -13,7 +13,7 @@ interface CalendarProps {
   history: DayRecord[];
   habits: Habit[];
   undesired: UndesiredTask[];
-  onFailDayClick?: (date: string, note: string | undefined) => void;
+  onDayClick?: (date: string, status: DayStatus, note: string | undefined) => void;
 }
 
 const STATUS_CLASS: Record<DayStatus, string> = {
@@ -38,7 +38,7 @@ function getFailNote(
   return rec?.undesired.find((u) => u.id === target.id)?.note;
 }
 
-export function Calendar({ year, month0, today, target, history, habits, undesired, onFailDayClick }: CalendarProps) {
+export function Calendar({ year, month0, today, target, history, habits, undesired, onDayClick }: CalendarProps) {
   const matrix = useMemo(() => getMonthMatrix(year, month0), [year, month0]);
 
   const historyByDate = useMemo(() => {
@@ -61,14 +61,14 @@ export function Calendar({ year, month0, today, target, history, habits, undesir
           const status = getDayStatus(date, target, { today, historyByDate, habits, undesired });
           const dayNum = parseInt(date.slice(8, 10), 10);
           const isToday = date === today;
-          const isTappable = status === 'fail' && onFailDayClick;
+          const isTappable = onDayClick && status !== 'none';
           return (
             <div
               key={key}
               className={`${s.cell} ${isToday ? s.cellToday : ''} ${isTappable ? s.cellTappable : ''}`}
               onClick={
                 isTappable
-                  ? () => onFailDayClick(date, getFailNote(date, target, today, historyByDate, undesired))
+                  ? () => onDayClick(date, status, getFailNote(date, target, today, historyByDate, undesired))
                   : undefined
               }
             >

@@ -15,6 +15,30 @@ export function getDayStatus(
   target: NonNullable<CalendarTarget>,
   ctx: DayStatusContext,
 ): DayStatus {
+  if (target.kind === 'all-habits') {
+    if (date > ctx.today) return 'none';
+    if (date === ctx.today) {
+      const active = ctx.habits.filter((h) => !h.archivedAt);
+      if (active.length === 0) return 'none';
+      return active.every((h) => h.doneToday) ? 'done' : 'empty';
+    }
+    const rec = ctx.historyByDate.get(date);
+    if (!rec || rec.habitsTotal === 0) return 'none';
+    return rec.habitsDone === rec.habitsTotal ? 'done' : 'empty';
+  }
+
+  if (target.kind === 'all-undesired') {
+    if (date > ctx.today) return 'none';
+    if (date === ctx.today) {
+      const active = ctx.undesired.filter((u) => !u.archivedAt);
+      if (active.length === 0) return 'none';
+      return active.some((u) => u.markedToday) ? 'fail' : 'empty';
+    }
+    const rec = ctx.historyByDate.get(date);
+    if (!rec) return 'empty';
+    return rec.undesired.some((u) => u.markedToday) ? 'fail' : 'empty';
+  }
+
   if (target.kind === 'habit') {
     const habit = ctx.habits.find((h) => h.id === target.id);
     if (!habit) return 'none';
@@ -36,8 +60,8 @@ export function getDayStatus(
   if (date > ctx.today) return 'none';
   if (date === ctx.today) return item.markedToday ? 'fail' : 'empty';
   const rec = ctx.historyByDate.get(date);
-  if (!rec) return 'none';
+  if (!rec) return 'empty';
   const uu = rec.undesired.find((u) => u.id === target.id);
-  if (!uu) return 'none';
+  if (!uu) return 'empty';
   return uu.markedToday ? 'fail' : 'empty';
 }
