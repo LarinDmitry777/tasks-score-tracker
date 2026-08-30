@@ -6,5 +6,159 @@
 
 .app-content {
   flex: 1;
-  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  padding: 20px 16px calc(24px + env(safe-area-inset-bottom));
+}
+
+/* ── Шапка ───────────────────────────────────────────────────── */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+  position: sticky;
+  top: 0;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+  border-bottom: 1px solid var(--border);
+}
+
+.app-header__back {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-primary);
+  font-size: 20px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.app-header__title {
+  font-size: 20px;
+  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-header__action {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-secondary);
+  font-size: 18px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+/* ── Дашборд ─────────────────────────────────────────────────── */
+
+.dashboard__greeting {
+  margin-bottom: 24px;
+}
+
+.dashboard__date {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+.dashboard__hello {
+  font-size: 26px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.module-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  min-height: 130px;
+  transition: transform 0.1s, background 0.15s;
+}
+
+.module-card:active {
+  transform: scale(0.98);
+}
+
+.module-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+}
+
+.module-card__title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.module-card__desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.module-card__summary {
+  margin-top: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.module-card__value {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.module-card__label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── Настройки ───────────────────────────────────────────────── */
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.settings-row__label {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.settings-row__hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
 }

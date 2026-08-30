@@ -1,0 +1,226 @@
+/* ── Модальный конфигуратор ──────────────────────────────────── */
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: sheet-fade 0.2s ease;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg);
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--border);
+  padding: 8px 16px calc(24px + env(safe-area-inset-bottom));
+  max-height: 92svh;
+  overflow-y: auto;
+  animation: sheet-up 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes sheet-fade {
+  from { opacity: 0; }
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+}
+
+.sheet__grip {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  margin: 6px auto 14px;
+}
+
+.sheet__title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.field {
+  margin-bottom: 20px;
+}
+
+.field__label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.text-input {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.text-input:focus {
+  border-color: var(--accent);
+}
+
+/* Сегменты (время суток / тип периодичности) */
+.segmented {
+  display: flex;
+  gap: 6px;
+  background: var(--card);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.segmented__btn {
+  flex: 1;
+  padding: 10px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.segmented__btn--active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Чипы дней недели */
+.weekday-chips {
+  display: flex;
+  gap: 6px;
+}
+
+.weekday-chip {
+  flex: 1;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.weekday-chip--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* Инлайновый ряд «раз в N дней» */
+.inline-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+.step-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.step-input button {
+  width: 40px;
+  height: 44px;
+  border: none;
+  background: var(--card);
+  color: var(--text-primary);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.step-input input {
+  width: 48px;
+  height: 44px;
+  border: none;
+  background: var(--card);
+  color: var(--text-primary);
+  text-align: center;
+  font-size: 16px;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.step-input input::-webkit-outer-spin-button,
+.step-input input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* В конфигураторе дата растягивается на всю ширину */
+.field .date-input {
+  width: 100%;
+}
+
+/* Действия внизу листа */
+.sheet__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn {
+  flex: 1;
+  padding: 15px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn--primary:disabled {
+  opacity: 0.4;
+}
+
+.btn--ghost {
+  background: var(--card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.btn--danger {
+  background: transparent;
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
+.field__hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
