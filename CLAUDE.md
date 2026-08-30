@@ -64,4 +64,4 @@ Each store persists under a `life:`-prefixed key (`life:tasks`, `life:settings`)
 
 ## Deployment (GitHub Pages)
 
-Pushing to `main` triggers `.github/workflows/main-flow.yml`, which builds with bun and deploys `dist/` to GitHub Pages. Because the site is served from a repo subpath, **`base` in `vite.config.ts` must equal `/<repo-name>/`**, and the PWA `scope` / `start_url` / manifest paths must match it. If the app 404s or loads blank assets after deploy, this mismatch is the first thing to check.
+Pushing to `main` triggers `.github/workflows/main-flow.yml`, which builds with bun and deploys `dist/` to GitHub Pages. The repo is `tasks-score-tracker`, and `base` in `vite.config.ts` is `/tasks-score-tracker/` to match — the site is served from that subpath. The PWA `scope` / `start_url` / manifest paths are kept in sync with `base`. If you rename the repo, update all of these together; a mismatch between `base` and the repo name is the usual cause of blank assets or 404s after deploy.
