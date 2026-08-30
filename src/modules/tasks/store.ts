@@ -67,6 +67,9 @@ export const useTasks = create<TasksState>()(
                   timeOfDay: draft.timeOfDay,
                   schedule: draft.schedule,
                   startDay: draft.startDay,
+                  // Отложенность — решение «на сегодня»; после перенастройки
+                  // задачи оно не должно продолжать её прятать.
+                  skippedDay: null,
                 }
               : t,
           ),

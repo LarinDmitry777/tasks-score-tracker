@@ -21,6 +21,9 @@ export function useToday(): DayKey {
     let timer: ReturnType<typeof setTimeout>;
 
     const recompute = () => {
+      // Гасим предыдущий таймер: recompute вызывается и по visibilitychange,
+      // иначе на каждом фоне/переднем плане копился бы лишний setTimeout.
+      clearTimeout(timer);
       const now = new Date();
       setToday(getLogicalDayKey(now, dayStartHour));
       const delay = nextDayStartAt(now, dayStartHour).getTime() - now.getTime();

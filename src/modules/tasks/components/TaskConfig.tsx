@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import type { Schedule, Task, TaskDraft, TimeOfDay } from '../model.ts';
-import { TIME_OF_DAY_LABELS, TIME_OF_DAY_ORDER } from '../model.ts';
+import {
+  TIME_OF_DAY_LABELS,
+  TIME_OF_DAY_ORDER,
+  WEEKDAY_ORDER,
+  WEEKDAY_SHORT,
+} from '../model.ts';
 import { pluralDays } from '../describe.ts';
 import type { DayKey } from '../../../core/time.ts';
 
@@ -11,9 +16,6 @@ const KIND_LABELS: Record<ScheduleKind, string> = {
   everyNDays: 'Раз в N дней',
   weekdays: 'По дням недели',
 };
-
-const WEEKDAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-const WEEKDAY_VALUES = [1, 2, 3, 4, 5, 6, 0]; // соответствуют подписям выше
 
 interface Props {
   today: DayKey;
@@ -161,20 +163,17 @@ export function TaskConfig({ today, task, onSave, onDelete, onClose }: Props) {
         {kind === 'weekdays' && (
           <div className="field">
             <div className="weekday-chips">
-              {WEEKDAY_SHORT.map((label, i) => {
-                const value = WEEKDAY_VALUES[i];
-                return (
-                  <button
-                    key={value}
-                    className={
-                      'weekday-chip' + (days.includes(value) ? ' weekday-chip--active' : '')
-                    }
-                    onClick={() => toggleDay(value)}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
+              {WEEKDAY_ORDER.map((value) => (
+                <button
+                  key={value}
+                  className={
+                    'weekday-chip' + (days.includes(value) ? ' weekday-chip--active' : '')
+                  }
+                  onClick={() => toggleDay(value)}
+                >
+                  {WEEKDAY_SHORT[value]}
+                </button>
+              ))}
             </div>
           </div>
         )}

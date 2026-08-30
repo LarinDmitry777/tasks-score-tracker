@@ -1,20 +1,15 @@
 import { modules } from '../core/registry.ts';
 import { navigate } from '../core/navigation.ts';
 import type { LifeModule } from '../core/module.ts';
-
-function formatToday(): string {
-  return new Date().toLocaleDateString('ru-RU', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  });
-}
+import { useToday } from '../core/useToday.ts';
+import { formatDayKey } from '../core/time.ts';
 
 export function Dashboard() {
+  const today = useToday();
   return (
     <div>
       <div className="dashboard__greeting">
-        <div className="dashboard__date">{formatToday()}</div>
+        <div className="dashboard__date">{formatDayKey(today)}</div>
         <h1 className="dashboard__hello">Моя жизнь</h1>
       </div>
 

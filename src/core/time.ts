@@ -54,6 +54,16 @@ export function diffDays(a: DayKey, b: DayKey): number {
   return dayKeyToOrdinal(a) - dayKeyToOrdinal(b);
 }
 
+/** Человекочитаемая дата логического дня (например «суббота, 30 августа»). */
+export function formatDayKey(key: DayKey, locale = 'ru-RU'): string {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+}
+
 /** Момент наступления следующего логического дня — для планирования пересчёта. */
 export function nextDayStartAt(now: Date, dayStartHour: number): Date {
   const next = new Date(now);

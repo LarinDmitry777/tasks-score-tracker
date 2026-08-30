@@ -2,9 +2,7 @@
  * Человекочитаемые подписи для расписаний.
  */
 
-import type { Schedule } from './model.ts';
-
-const WEEKDAY_SHORT = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+import { WEEKDAY_ORDER, WEEKDAY_SHORT, type Schedule } from './model.ts';
 
 /** Склонение «день/дня/дней» для числительного. */
 export function pluralDays(n: number): string {
@@ -27,7 +25,7 @@ export function describeSchedule(schedule: Schedule): string {
     case 'weekdays': {
       if (schedule.days.length === 0) return 'Дни не выбраны';
       if (schedule.days.length === 7) return 'Каждый день';
-      const ordered = [1, 2, 3, 4, 5, 6, 0].filter((d) => schedule.days.includes(d));
+      const ordered = WEEKDAY_ORDER.filter((d) => schedule.days.includes(d));
       return ordered.map((d) => WEEKDAY_SHORT[d]).join(', ');
     }
   }
