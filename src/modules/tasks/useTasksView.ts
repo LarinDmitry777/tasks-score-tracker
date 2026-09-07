@@ -1,6 +1,6 @@
 /**
  * Производный вью-модель для экрана задач: активные задачи на сегодня,
- * сгруппированные по времени суток, с сортировкой «готовые — вниз».
+ * сгруппированные по времени суток, в стабильном порядке добавления.
  */
 
 import { useTasks } from './store.ts';
@@ -46,18 +46,6 @@ export function useTasksView(today: DayKey): TimeGroup[] {
       task,
       status,
       overdue: isOverdue(task, today),
-    });
-  }
-
-  for (const group of groups) {
-    group.tasks.sort((a, b) => {
-      // Порядок: активные → выполненные → отложенные (в самый низ).
-      const rank = (v: TaskView) =>
-        v.status === 'skipped' ? 2 : v.status === 'done' ? 1 : 0;
-      if (rank(a) !== rank(b)) return rank(a) - rank(b);
-      // Среди активных — просроченные выше.
-      if (a.overdue !== b.overdue) return a.overdue ? -1 : 1;
-      return a.task.title.localeCompare(b.task.title, 'ru');
     });
   }
 

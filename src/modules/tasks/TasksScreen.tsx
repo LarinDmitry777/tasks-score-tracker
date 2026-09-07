@@ -80,8 +80,15 @@ export function TasksScreen() {
                     {TIME_OF_DAY_LABELS[group.timeOfDay]}
                   </h2>
                   <span className="tasks-group__count">
-                    {group.tasks.filter((t) => t.status === 'done').length}/
-                    {group.tasks.filter((t) => t.status !== 'skipped').length}
+                    {(() => {
+                      let done = 0;
+                      let countable = 0;
+                      for (const t of group.tasks) {
+                        if (t.status === 'done') done++;
+                        else if (t.status !== 'skipped') countable++;
+                      }
+                      return `${done}/${done + countable}`;
+                    })()}
                   </span>
                 </div>
                 <div className="tasks-list">
