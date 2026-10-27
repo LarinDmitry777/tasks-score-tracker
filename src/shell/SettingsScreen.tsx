@@ -1,4 +1,5 @@
 import { useSettings } from '../core/settings.ts';
+import { BackupSection } from './BackupSection.tsx';
 
 export function SettingsScreen() {
   const dayStartHour = useSettings((s) => s.dayStartHour);
@@ -26,6 +27,10 @@ export function SettingsScreen() {
           ))}
         </select>
       </div>
+
+      <div className="section-gap" />
+
+      <BackupSection />
     </div>
   );
 }

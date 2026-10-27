@@ -181,31 +181,6 @@
   margin-top: 8px;
 }
 
-.btn {
-  flex: 1;
-  padding: 15px;
-  border-radius: 12px;
-  border: none;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn--primary {
-  background: var(--accent);
-  color: #fff;
-}
-
-.btn--primary:disabled {
-  opacity: 0.4;
-}
-
-.btn--ghost {
-  background: var(--card);
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-}
-
 .btn--danger {
   background: transparent;
   color: #f87171;
