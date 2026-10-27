@@ -4,7 +4,9 @@ import {
   applyBackup,
   backupFileName,
   buildBackup,
+  loadSafetySnapshot,
   parseBackup,
+  restoreSafetySnapshot,
   serializeBackup,
   type BackupFile,
 } from '../core/backup.ts';
@@ -14,12 +16,23 @@ interface PendingImport {
   backup: BackupFile;
 }
 
+/** Момент снимка для кнопки отката: «27.10 14:32». */
+function formatMoment(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(date.getDate())}.${pad(date.getMonth() + 1)} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export function BackupSection() {
   const today = useToday();
   const inputRef = useRef<HTMLInputElement>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingImport | null>(null);
+  // Страховка от неверного или битого файла: появляется после импорта и
+  // позволяет вернуть состояние, которое импорт затёр.
+  const [safety] = useState(() => loadSafetySnapshot());
   // Защита от гонки асинхронных чтений: пока читается файл, пользователь может
   // выбрать другой — результат более старого чтения не должен затирать новый выбор.
   const importSeq = useRef(0);
@@ -85,6 +98,12 @@ export function BackupSection() {
     const result = parseBackup(text);
     if (result.ok) setPending({ fileName: file.name, backup: result.backup });
     else setImportError(result.error);
+  };
+
+  const handleRestore = () => {
+    setImportError(null);
+    const error = restoreSafetySnapshot();
+    if (error) setImportError(error);
   };
 
   return (
@@ -155,6 +174,14 @@ export function BackupSection() {
                 Импортировать
               </button>
             </div>
+          </div>
+        )}
+
+        {safety && (
+          <div className="backup-actions">
+            <button className="btn btn--ghost" onClick={handleRestore}>
+              ↩ Восстановить предыдущее состояние (от {formatMoment(safety.savedAt)})
+            </button>
           </div>
         )}
       </div>

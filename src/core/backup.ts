@@ -10,9 +10,18 @@
 import type { DayKey } from './time.ts';
 
 export const LIFE_PREFIX = 'life:';
-export const BACKUP_APP_ID = 'life-aggregator';
+
+/** Внутренний идентификатор формата — поле `app` в файле. */
+export const BACKUP_APP_ID = 'scoreflow';
 export const BACKUP_KIND = 'life-backup';
 export const BACKUP_FORMAT_VERSION = 1;
+
+/**
+ * Имя, под которым приложение знает пользователь: название файла бэкапа и тексты
+ * ошибок импорта. Вне префикса `life:` — это служебный ключ, а не состояние.
+ */
+const PRODUCT_NAME = 'ScoreFlow';
+const SAFETY_KEY = 'scoreflow:backup-safety';
 
 /** Конверт, который Zustand persist кладёт в localStorage. */
 export interface PersistEnvelope {
@@ -34,8 +43,22 @@ export type ParseResult =
   /** Сообщение об ошибке, готовое к показу пользователю. */
   | { ok: false; error: string };
 
+/**
+ * Состояние, снятое перед последним успешным импортом. Хранится в сыром виде
+ * (как лежало в localStorage) и вне префикса `life:`, чтобы не попадать в
+ * бэкап и не затираться полной заменой.
+ */
+export interface SafetySnapshot {
+  savedAt: string;
+  entries: Record<string, string>;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isStringRecord(value: unknown): value is Record<string, string> {
+  return isRecord(value) && Object.values(value).every((v) => typeof v === 'string');
 }
 
 /**
@@ -56,6 +79,16 @@ function lifeKeys(): string[] {
     if (key && key.startsWith(LIFE_PREFIX)) keys.push(key);
   }
   return keys;
+}
+
+/** Сырое содержимое всех ключей `life:*`. */
+function readLifeEntries(): Record<string, string> {
+  const entries: Record<string, string> = {};
+  for (const key of lifeKeys()) {
+    const raw = localStorage.getItem(key);
+    if (raw !== null) entries[key] = raw;
+  }
+  return entries;
 }
 
 export function buildBackup(): BackupFile {
@@ -108,7 +141,7 @@ export function parseBackup(text: string): ParseResult {
   }
 
   if (data.kind !== BACKUP_KIND || data.app !== BACKUP_APP_ID) {
-    return { ok: false, error: 'Файл не является резервной копией ScoreFlow.' };
+    return { ok: false, error: `Файл не является резервной копией ${PRODUCT_NAME}.` };
   }
 
   const formatVersion = data.formatVersion;
@@ -149,35 +182,27 @@ export function parseBackup(text: string): ParseResult {
 }
 
 /**
- * Полная замена состояния: записывает ключи из бэкапа, удаляет лишние `life:*`
- * и перезагружает страницу.
+ * Полная замена ключей `life:*` на `entries` (сырые значения localStorage).
  *
- * Перезагрузка выбрана вместо `setState` / `persist.rehydrate()`: те требуют
- * перечислять все сторы (связь с каждым модулем и ручные правки для новых), а у
- * `rehydrate` дефолтный поверхностный `merge` ещё и оставит ключи, которых нет
- * в файле. `localStorage.setItem` синхронен, поэтому к моменту перезагрузки
- * память и хранилище не расходятся.
+ * При отказе записи состояние откатывается: сначала убираются ключи, которых не
+ * было до замены (иначе они бы «утекли» из неудавшейся операции), затем
+ * возвращаются прежние значения. Откат делается best-effort — даже если он не
+ * удался, вызывающий должен показать сообщение об ошибке, а не исключение.
  *
- * Возвращает сообщение об ошибке, если запись не удалась (тогда ничего не
- * удаляем и не перезагружаемся).
+ * Возвращает сообщение об ошибке либо `null`.
  */
-export function applyBackup(backup: BackupFile): string | null {
+function replaceLifeEntries(entries: Record<string, string>): string | null {
   const keys = lifeKeys();
   const snapshot = new Map<string, string | null>();
   for (const key of keys) snapshot.set(key, localStorage.getItem(key));
 
   try {
-    for (const [key, value] of Object.entries(backup.entries)) {
-      localStorage.setItem(key, JSON.stringify(value));
+    for (const [key, raw] of Object.entries(entries)) {
+      localStorage.setItem(key, raw);
     }
   } catch {
-    // Откат: на случай, если часть ключей уже записалась до отказа по квоте.
-    // Сначала убираем ключи, которых не было до импорта (их нет в snapshot и
-    // без этого они бы «утекли» из неудавшегося импорта), затем возвращаем
-    // прежние значения. Откат делаем best-effort: если даже он не удался,
-    // пользователь всё равно должен увидеть сообщение об ошибке, а не исключение.
     try {
-      for (const key of Object.keys(backup.entries)) {
+      for (const key of Object.keys(entries)) {
         if (!snapshot.has(key)) localStorage.removeItem(key);
       }
       for (const [key, raw] of snapshot) {
@@ -190,17 +215,88 @@ export function applyBackup(backup: BackupFile): string | null {
     return 'Не удалось сохранить данные: в браузере закончилось место.';
   }
 
-  const incoming = new Set(Object.keys(backup.entries));
+  const incoming = new Set(Object.keys(entries));
   for (const key of keys) {
     if (!incoming.has(key)) localStorage.removeItem(key);
+  }
+  return null;
+}
+
+/**
+ * Полная замена состояния содержимым бэкапа.
+ *
+ * Перезагрузка выбрана вместо `setState` / `persist.rehydrate()`: те требуют
+ * перечислять все сторы (связь с каждым модулем и ручные правки для новых), а у
+ * `rehydrate` дефолтный поверхностный `merge` ещё и оставит ключи, которых нет
+ * в файле. `localStorage.setItem` синхронен, поэтому к моменту перезагрузки
+ * память и хранилище не расходятся.
+ *
+ * Перед заменой снимается страховочная копия текущего состояния: импорт может
+ * выполняться из неверного или повреждённого файла, и тогда единственным
+ * способом вернуть данные остаётся откат одной кнопкой (см. `restoreSafetySnapshot`).
+ *
+ * Возвращает сообщение об ошибке, если запись не удалась (тогда ничего не
+ * удаляем и не перезагружаемся).
+ */
+export function applyBackup(backup: BackupFile): string | null {
+  const previous = readLifeEntries();
+
+  const incoming: Record<string, string> = {};
+  for (const [key, value] of Object.entries(backup.entries)) {
+    incoming[key] = JSON.stringify(value);
+  }
+
+  const error = replaceLifeEntries(incoming);
+  if (error) return error;
+
+  // Страховку кладём только после успеха: иначе кнопка отката предлагала бы
+  // «отменить» импорт, который и не применялся.
+  try {
+    localStorage.setItem(
+      SAFETY_KEY,
+      JSON.stringify({ savedAt: new Date().toISOString(), entries: previous } satisfies SafetySnapshot),
+    );
+  } catch {
+    console.warn('backup: не удалось сохранить страховочную копию');
   }
 
   window.location.reload();
   return null;
 }
 
+/** Состояние, снятое перед последним успешным импортом, если оно есть. */
+export function loadSafetySnapshot(): SafetySnapshot | null {
+  const raw = localStorage.getItem(SAFETY_KEY);
+  if (raw === null) return null;
+
+  let value: unknown;
+  try {
+    value = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!isRecord(value) || typeof value.savedAt !== 'string' || !isStringRecord(value.entries)) {
+    return null;
+  }
+  return { savedAt: value.savedAt, entries: value.entries };
+}
+
+/**
+ * Возврат к состоянию, снятому перед последним импортом. Копия при этом
+ * съедается — откат одного и того же шага повторить уже нельзя.
+ */
+export function restoreSafetySnapshot(): string | null {
+  const snapshot = loadSafetySnapshot();
+  if (!snapshot) return 'Нет сохранённого предыдущего состояния.';
+
+  const error = replaceLifeEntries(snapshot.entries);
+  if (error) return error;
+
+  localStorage.removeItem(SAFETY_KEY);
+  window.location.reload();
+  return null;
+}
+
 export function backupFileName(today: DayKey): string {
-  // Имя файла — с продуктовым именем (как в <title> и в сообщениях об ошибках
-  // импорта), а не с внутренним id приложения.
-  return `ScoreFlow-${today}.json`;
+  return `${PRODUCT_NAME}-${today}.json`;
 }
